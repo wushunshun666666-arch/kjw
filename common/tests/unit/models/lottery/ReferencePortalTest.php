@@ -5,28 +5,35 @@ use common\models\lottery\DrawInput;
 use common\models\lottery\DrawModel;
 use common\models\lottery\Game;
 use common\models\lottery\Notice;
-use frontend\models\ReferenceGateway;
+use common\models\lottery\NoticeModel;
 use frontend\models\ReferencePortalService;
 use PHPUnit\Framework\TestCase;
+use yii\web\NotFoundHttpException;
 
 /** 前端只读数据边界，全部写入在事务内回滚，开奖查询不得调用第三方。 */
 final class ReferencePortalTest extends TestCase
 {
     private ?\yii\db\Transaction $transaction = null;
+    private array $previousParams;
+    private string|false $previousReferenceNotices;
 
-    /** 隔离测试数据。 */
-    protected function setUp(): void { $this->transaction = Yii::$app->db->beginTransaction(); }
-
-    /** 保留现有真实数据。 */
-    protected function tearDown(): void { $this->transaction?->rollBack(); }
-
-    /** 不访问网络的公开接口桩。 */
-    private function service(array $responses): ReferencePortalService
+    /** 隔离测试数据，并验证旧参考公告开关无法恢复外部内容。 */
+    protected function setUp(): void
     {
-        return new ReferencePortalService(new class($responses) extends ReferenceGateway {
-            public function __construct(private array $responses) {}
-            public function fetch(string $resource, array $data = []): array { return $this->responses[$resource] ?? []; }
-        });
+        $this->previousParams = Yii::$app->params;
+        Yii::$app->params['lotteryData'] = ['mode' => 'standalone'];
+        $this->previousReferenceNotices = getenv('LOTTERY_REFERENCE_NOTICES');
+        putenv('LOTTERY_REFERENCE_NOTICES=1');
+        $this->transaction = Yii::$app->db->beginTransaction();
+    }
+
+    /** 保留现有真实数据和部署配置。 */
+    protected function tearDown(): void
+    {
+        $this->transaction?->rollBack();
+        Yii::$app->params = $this->previousParams;
+        putenv($this->previousReferenceNotices === false ? 'LOTTERY_REFERENCE_NOTICES'
+            : 'LOTTERY_REFERENCE_NOTICES=' . $this->previousReferenceNotices);
     }
 
     /** 创建事务内测试开奖，使断言不依赖实时期号。 */
@@ -53,10 +60,7 @@ final class ReferencePortalTest extends TestCase
                 'target_time' => '2099-01-01 01:03:30', 'create_time' => '2098-12-31 23:59:00']);
             self::assertTrue($prediction->save());
         }
-        $service = new ReferencePortalService(new class extends ReferenceGateway {
-            public function fetch(string $resource, array $data = []): array { throw new RuntimeException('开奖页不得访问第三方接口'); }
-        });
-        $data = $service->open();
+        $data = (new ReferencePortalService())->open();
         self::assertSame([1, 2, 3], $data['list'][0]['code_arr']);
         self::assertSame('1 + 2 + 3 = 6', $data['list'][0]['result']);
         self::assertSame(1, $data['list'][0]['prdx']);
@@ -67,11 +71,11 @@ final class ReferencePortalTest extends TestCase
         self::assertSame('test-local', $data['prediction_algorithm']);
     }
 
-    /** 预测缺失或结构异常不伪造命中/失误，并保留真实开奖。 */
-    public function testMissingOrMalformedPredictionsRemainUnavailable(): void
+    /** 预测缺失不伪造命中/失误，并保留真实开奖。 */
+    public function testMissingPredictionsRemainUnavailable(): void
     {
         $this->draw();
-        $data = $this->service(['website/open' => ['list' => 'invalid', 'prediction' => 'invalid']])->open();
+        $data = (new ReferencePortalService())->open();
         self::assertSame(6, $data['list'][0]['sum']);
         self::assertFalse($data['list'][0]['prediction_available']);
         self::assertNull($data['list'][0]['prdx']);
@@ -86,26 +90,64 @@ final class ReferencePortalTest extends TestCase
         self::assertNotNull($game);
         $game->enabled = Game::HIDDEN;
         self::assertTrue($game->save(false));
-        $data = $this->service(['website/open' => ['list' => [['period' => '1', 'code_arr' => [1,2,3]]]]])->open();
+        $data = (new ReferencePortalService())->open();
         self::assertSame([], $data['list']);
         self::assertSame('-', $data['period']['cperiod']);
         self::assertSame(0, $data['period']['open_time']);
     }
 
-    /** 外部公告净化 HTML，禁止脚本和危险链接。 */
-    public function testReferenceNoticeHtmlIsSanitized(): void
+    /** 空数据库不补入参考公告，即使部署仍保留旧开关。 */
+    public function testEmptyNoticeListDoesNotUseReferenceContent(): void
     {
-        $data = $this->service(['notice/detail' => ['id' => 8, 'title' => '公告', 'created' => '',
-            'content' => '<p>正文</p><script>alert(1)</script><a href="javascript:alert(1)">链接</a>']])->notice('reference-8');
-        self::assertStringContainsString('正文', $data['content']);
-        self::assertStringNotContainsString('<script', $data['content']);
-        self::assertStringNotContainsString('javascript:', $data['content']);
+        Notice::deleteAll();
+        self::assertSame([], (new ReferencePortalService())->notices());
     }
 
-    /** 第三方网关明确拒绝旧预测端点。 */
-    public function testRemotePredictionEndpointIsRemoved(): void
+    /** 未发布公告不出现在目录中，知道详情地址也不能读取。 */
+    public function testUnpublishedNoticeIsNotPublic(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        (new ReferenceGateway())->fetch('website/open');
+        Notice::updateAll(['enabled' => Notice::HIDDEN]);
+        $notice = $this->createNotice('未发布公告', '不可公开的正文', Notice::HIDDEN);
+        $service = new ReferencePortalService();
+        self::assertSame([], $service->notices());
+        $this->expectException(NotFoundHttpException::class);
+        $service->notice('local-' . $notice->id);
+    }
+
+    /** 已发布公告按最新在前排列，详情按纯文本转义而不执行 HTML。 */
+    public function testPublishedLocalNoticesKeepOrderAndEscapeContent(): void
+    {
+        Notice::updateAll(['enabled' => Notice::HIDDEN]);
+        $older = $this->createNotice('较早公告', '第一条正文', Notice::VISIBLE);
+        $newer = $this->createNotice('较新公告', "<script>alert(1)</script>\n第二行 & 正文", Notice::VISIBLE);
+        $this->createNotice('隐藏公告', '不可公开', Notice::HIDDEN);
+        $service = new ReferencePortalService();
+        self::assertSame([
+            ['id' => 'local-' . $newer->id, 'title' => $newer->title, 'created' => $newer->create_time],
+            ['id' => 'local-' . $older->id, 'title' => $older->title, 'created' => $older->create_time],
+        ], $service->notices());
+        self::assertSame([
+            'id' => 'local-' . $newer->id,
+            'title' => $newer->title,
+            'created' => $newer->create_time,
+            'content' => "&lt;script&gt;alert(1)&lt;/script&gt;<br />\n第二行 &amp; 正文",
+        ], $service->notice('local-' . $newer->id));
+    }
+
+    /** 旧参考公告详情始终返回404，不受遗留环境开关影响。 */
+    public function testReferenceNoticeIdentifierIsNotPublic(): void
+    {
+        $this->expectException(NotFoundHttpException::class);
+        (new ReferencePortalService())->notice('reference-8');
+    }
+
+    /** 使用真实后台领域动作创建公告，所有写入随测试事务回滚。 */
+    private function createNotice(string $title, string $content, int $enabled): Notice
+    {
+        $model = NoticeModel::create(['title' => $title, 'content' => $content, 'enabled' => $enabled]);
+        self::assertInstanceOf(NoticeModel::class, $model);
+        $notice = $model->getData();
+        self::assertTrue($notice->refresh());
+        return $notice;
     }
 }

@@ -67,7 +67,7 @@ final class SharedDataPortalTest extends TestCase
             foreach (['alpha', 'beta'] as $id) {
                 $config = $this->client($id);
                 $gateway = $this->gateway($config, $latest);
-                $result = $code === 'jnd28' ? (new ReferencePortalService(null, $config, $gateway))->open()
+                $result = $code === 'jnd28' ? (new ReferencePortalService($config, $gateway))->open()
                     : (new GamePortalService($config, $gateway))->open($code);
                 self::assertEquals($latest['list'], $result['list']);
                 self::assertFalse($result['shared_data']['stale']);
@@ -97,7 +97,7 @@ final class SharedDataPortalTest extends TestCase
         try {
             (new GamePortalService($config, $gateway))->open('az10');
             self::fail('隐藏彩种不能公开。');
-        } catch (\yii\web\NotFoundHttpException) { self::assertTrue(true); }
+        } catch (\yii\web\NotFoundHttpException $exception) { self::assertSame(404, $exception->statusCode); }
         self::assertSame('az10', (new GamePortalService())->open('az10', true)['game']['code']);
     }
 
@@ -123,7 +123,7 @@ final class SharedDataPortalTest extends TestCase
         Settings::updateAll(['website' => 'customer.example', 'title' => '客户自己的站点',
             'landing' => 'https://customer.example/login', 'ads_json' => '[]'], ['id' => 1]);
         $config = $this->client();
-        $data = (new ReferencePortalService(null, $config))->website();
+        $data = (new ReferencePortalService($config))->website();
         self::assertSame('客户自己的站点', $data['title']);
         self::assertSame('https://customer.example/login', $data['landing']);
         self::assertSame([], $data['ad']);

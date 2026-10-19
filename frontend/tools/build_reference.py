@@ -33,7 +33,7 @@ patch('index-5ZnwG-jb.js',
 patch('index-5ZnwG-jb.js', 'const s=y(!0),a=D(()=>c.ad.length>0);return A(function(){c.init()})',
       'let portal;const s=y(!0),a=D(()=>c.ad.length>0);ie(()=>portal?.destroy());return A(function(){portal=mountPortal(c)})')
 patch('index-5ZnwG-jb.js', 'var T=',
-      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-8";var T=')
+      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-9";var T=')
 patch('index-5ZnwG-jb.js', 'ys={class:"flex flex-col pb-2"}',
       'ys={id:"portal-home",class:"flex flex-col pb-2"}')
 patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1})):w("",!0)',
@@ -84,6 +84,24 @@ patch('website-BTB8_uk9.js', 'yield o.open(e),o.timer===!1&&',
       'yield o.open(e),o.portal_active&&o.selected_game==="jnd28"&&o.timer===!1&&')
 patch('website-BTB8_uk9.js', 'document.title=t.title',
       'void 0')
+# Configuration retries must neither block the public draw panel nor restart its poller.
+# The pinned snapshot stays unchanged; this adapter owns the local loading lifecycle.
+website_apply = (
+    'o.ad_ww=t.ad_ww,o.ad_wx=t.ad_wx,o.ad_icon=t.ad_icon,'
+    'o.ad=Array.isArray(t.ad)?t.ad.filter(n=>n&&n.cover):[],'
+    'o.landing=t.landing,o.entry=t.entry,o.website=t.website,o.icon=t.icon,'
+    'o.banner=t.banner,o.show_qrcode=t.show_qrcode,o.notice_scroll=t.notice_scroll'
+)
+patch('website-BTB8_uk9.js',
+      'init:function(){return h(this,null,function*(){const e=yield x({api:O.website_index,data:{id:o.lottery_id}});'
+      'if(e.code===200){const t=e.data;' + website_apply + ',void 0}o.is_init=!0,yield this.cycle(!0)})}',
+      'init:function(){o.is_init=!0;return portalConfiguration.load()}')
+patch('website-BTB8_uk9.js', 'var h=',
+      'import{WebsiteConfiguration}from"../js/portal-website-configuration.js?v=20261019-9";var h=')
+patch('website-BTB8_uk9.js', 'export{o as W};',
+      'const portalConfiguration=new WebsiteConfiguration({'
+      'request:()=>x({api:O.website_index,data:{id:o.lottery_id}}),'
+      'apply:function(t){' + website_apply + '}});export{o as W};')
 # The reference contact page incorrectly uses a website URL as an image source.
 # Keep its full-width image layout, bind the uploaded contact icon and real link.
 patch('index-Dd6rjNuL.js',
@@ -93,7 +111,7 @@ for name in ['cover.png', 'open.png']:
     shutil.copy2(SOURCE / name, ROOT / 'web' / name)
 # Version the entire import graph, including Vite preloads and circular Vue imports.
 # Revalidating only the entry URL can leave stale chunks or mount two Vue runtimes.
-version = '20261019-8'
+version = '20261019-9'
 scripts = list(OUTPUT.glob('*.js'))
 for script in scripts:
     contents = script.read_text('utf-8')

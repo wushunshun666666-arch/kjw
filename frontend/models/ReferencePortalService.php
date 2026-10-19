@@ -12,20 +12,17 @@ use common\models\lottery\SharedDataConfig;
 use common\models\lottery\SharedDataGateway;
 use common\resource\PortalImageResource;
 use yii\helpers\Html;
-use yii\helpers\HtmlPurifier;
 use yii\web\NotFoundHttpException;
 
 /** 将独立开奖后台的数据适配到参考前端协议。 */
 final class ReferencePortalService
 {
-    private ReferenceGateway $gateway;
     private SharedDataConfig $sharedConfig;
     private ?SharedDataGateway $sharedGateway;
 
-    /** 注入只读网关，便于验证期号匹配与降级行为。 */
-    public function __construct(?ReferenceGateway $gateway = null, ?SharedDataConfig $sharedConfig = null, ?SharedDataGateway $sharedGateway = null)
+    /** 注入共享数据配置与只读网关，公告和外观始终读取本站数据库。 */
+    public function __construct(?SharedDataConfig $sharedConfig = null, ?SharedDataGateway $sharedGateway = null)
     {
-        $this->gateway = $gateway ?? new ReferenceGateway();
         $this->sharedConfig = $sharedConfig ?? SharedDataConfig::current();
         $this->sharedGateway = $sharedGateway;
     }
@@ -136,25 +133,15 @@ final class ReferencePortalService
         return $list;
     }
 
-    /** 后台发布公告优先；没有站内公告时显示参考站公开公告。 */
+    /** 仅展示本站后台已发布公告，没有已发布内容时返回空列表。 */
     public function notices(): array
     {
         $local = Notice::find()->where(['enabled' => Notice::VISIBLE])->orderBy(['id' => SORT_DESC])->all();
-        if ($local !== []) {
-            return array_map(static fn (Notice $notice): array => ['id' => 'local-' . $notice->id,
-                'title' => $notice->title, 'created' => $notice->create_time], $local);
-        }
-        if (!$this->config()['reference_notices']) { return []; }
-        $result = [];
-        foreach ($this->gateway->fetch('notice/list') as $row) {
-            if (!is_array($row) || !ctype_digit((string) ($row['id'] ?? ''))) { continue; }
-            $result[] = ['id' => 'reference-' . $row['id'], 'title' => (string) ($row['title'] ?? ''),
-                'created' => (string) ($row['created'] ?? '')];
-        }
-        return $result;
+        return array_map(static fn (Notice $notice): array => ['id' => 'local-' . $notice->id,
+            'title' => $notice->title, 'created' => $notice->create_time], $local);
     }
 
-    /** 公告详情只公开已发布站内内容，外部 HTML 必须净化。 */
+    /** 公告详情只公开已发布站内内容，并按纯文本安全展示。 */
     public function notice(string $id): array
     {
         if (preg_match('/^local-([1-9][0-9]{0,9})$/D', $id, $match)) {
@@ -162,20 +149,6 @@ final class ReferencePortalService
             return ['id' => $id, 'title' => $notice['title'], 'created' => $notice['create_time'],
                 'content' => nl2br(Html::encode($notice['content']))];
         }
-        if ($this->config()['reference_notices'] && preg_match('/^reference-([1-9][0-9]{0,9})$/D', $id, $match)) {
-            $notice = $this->gateway->fetch('notice/detail', ['id' => (int) $match[1], 'source' => 'https://pc28p.com/']);
-            if (!empty($notice['id'])) {
-                return ['id' => $id, 'title' => (string) ($notice['title'] ?? ''),
-                    'created' => (string) ($notice['created'] ?? ''),
-                    'content' => HtmlPurifier::process((string) ($notice['content'] ?? ''), [
-                        'URI.AllowedSchemes' => ['http' => true, 'https' => true],
-                        'HTML.SafeIframe' => false,
-                    ])];
-            }
-        }
         throw new NotFoundHttpException('公告不存在。');
     }
-
-    /** 加载部署时的站点配置。 */
-    private function config(): array { return require dirname(__DIR__) . '/config/portal.php'; }
 }

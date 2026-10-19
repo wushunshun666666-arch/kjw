@@ -1,6 +1,6 @@
 <?php
 
-/** 初始迁移默认外观及服务端接入选项。上线后链接、广告和图片由后台数据库配置管理。 */
+/** 初始迁移默认外观。上线后链接、广告和图片由后台数据库配置管理。 */
 return [
     'website' => getenv('LOTTERY_PUBLIC_DOMAIN') ?: 'jnd68.com',
     'title' => '官方授权开奖网',
@@ -16,5 +16,4 @@ return [
         'link' => getenv('LOTTERY_AD_URL') ?: 'https://tfajn.hcjwj.com/app/register.php?site_id=2081&pt=B9C93FB4-B763-B3D9-588E-2163C860FA12',
     ]],
     'notice_scroll' => '各项福利介绍请看右方公告！！！各项福利介绍请看右方公告！！！各项福利介绍请看右方公告！！！',
-    'reference_notices' => getenv('LOTTERY_REFERENCE_NOTICES') !== '0',
 ];
