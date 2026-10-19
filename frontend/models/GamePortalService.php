@@ -42,6 +42,7 @@ final class GamePortalService
         return [
             'game' => ['code' => $code, 'name' => $game->name, 'type' => $definition['type'],
                 'positions' => $positions, 'range' => $game->getNumberRange(), 'sum_label' => $racing ? '冠亚和' : '总和',
+                'analysis' => $this->analysisOptions($game, $positions, $racing),
                 'rule' => $racing ? '按第1至第10名排列；冠亚和为前两名之和，12–19为大，3–11为小。'
                     : ($definition['count'] === 5 ? '按万、千、百、十、个位排列；总和23–45为大，0–22为小。' : '三位号码之和14–27为大，0–13为小。')],
             'list' => $rows,
@@ -49,5 +50,22 @@ final class GamePortalService
             'collection' => ['attempt_time' => $state?->attempt_time, 'success_time' => $state?->success_time,
                 'unavailable' => $state !== null && $state->error !== ''],
         ];
+    }
+
+    /** 提供走势与统计共用的分析项目，大小单双沿用开奖结果的总和分类。 */
+    private function analysisOptions(Game $game, array $positions, bool $racing): array
+    {
+        $sumMin = $racing ? 2 * (int) $game->ball_min + 1 : (int) $game->ball_count * (int) $game->ball_min;
+        $sumMax = $racing ? 2 * (int) $game->ball_max - 1 : (int) $game->ball_count * (int) $game->ball_max;
+        $options = [
+            ['key' => 'sum', 'label' => $racing ? '冠亚和' : '总和', 'field' => 'sum', 'values' => range($sumMin, $sumMax)],
+            ['key' => 'size', 'label' => '大小', 'field' => 'size', 'values' => ['大', '小']],
+            ['key' => 'parity', 'label' => '单双', 'field' => 'parity', 'values' => ['单', '双']],
+        ];
+        foreach ($positions as $index => $label) {
+            $options[] = ['key' => 'position-' . $index, 'label' => $label, 'field' => 'balls',
+                'position' => $index, 'values' => $game->getNumberRange()];
+        }
+        return $options;
     }
 }

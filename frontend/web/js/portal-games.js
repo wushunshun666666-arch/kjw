@@ -1,4 +1,5 @@
-import {CountdownPanel, ScratchCardPanel} from './portal-draw-interactions.js?v=20261019-2';
+import {CountdownPanel, ScratchCardPanel} from './portal-draw-interactions.js?v=20261019-3';
+import {analysisValue, analysisCounts} from './portal-game-analysis.js?v=20261019-3';
 
 /** Build text-only DOM for public draw data; never interpolate upstream HTML. */
 function element(tag, text = '', className = '') {
@@ -36,13 +37,13 @@ class LatestDrawPanel {
     }
 }
 
-/** Results, per-position trends and sample frequencies share one data window. */
+/** Results, total/category/position trends and frequencies share one data window. */
 class DrawHistoryPanel {
     constructor(root, data) {
         this.root = root;
         this.data = data;
         this.tab = 'result';
-        this.position = 0;
+        this.measureKey = 'sum';
         this.limit = 100;
         this.init();
     }
@@ -60,8 +61,8 @@ class DrawHistoryPanel {
                 this.root.querySelector(`[data-tab="${tabs[next]}"]`).focus();
             });
         });
-        this.root.querySelector('[data-field="position"]').addEventListener('change', event => {
-            this.position = Number(event.target.value);
+        this.root.querySelector('[data-field="analysis"]').addEventListener('change', event => {
+            this.measureKey = event.target.value;
             this.render();
         });
         this.root.querySelector('[data-field="limit"]').addEventListener('change', event => {
@@ -78,7 +79,7 @@ class DrawHistoryPanel {
             button.setAttribute('aria-selected', String(active));
             button.tabIndex = active ? 0 : -1;
         });
-        this.root.querySelector('[data-region="position-control"]').hidden = tab === 'result';
+        this.root.querySelector('[data-region="analysis-control"]').hidden = tab === 'result';
         this.root.querySelector('[role="tabpanel"]').setAttribute('aria-labelledby', `tab-${tab}`);
         this.render();
     }
@@ -99,8 +100,9 @@ class DrawHistoryPanel {
         const table = element('table', '', `portal-data-table portal-${this.tab}`);
         const head = element('thead');
         const tr = element('tr');
+        const measure = this.measure();
         const titles = this.tab === 'result' ? ['期号 / 开奖时间', '开奖号码', this.data.game.sum_label, '大小', '单双']
-            : this.tab === 'trend' ? ['期号', ...this.data.game.range.map(String)] : ['号码', '出现次数', '占比'];
+            : this.tab === 'trend' ? ['期号', measure.label, ...measure.values.map(String)] : [measure.label, '出现次数', '占比'];
         titles.forEach(title => { const th = element('th', title); th.scope = 'col'; tr.append(th); });
         head.append(tr);
         const body = element('tbody');
@@ -121,10 +123,12 @@ class DrawHistoryPanel {
             numbers.append(group);
             tr.append(issue, numbers, element('td', row.sum), element('td', row.size), element('td', row.parity));
         } else {
-            tr.append(issue);
-            this.data.game.range.forEach(value => {
+            const measure = this.measure();
+            const current = analysisValue(row, measure);
+            tr.append(issue, element('td', current, 'portal-measure-value'));
+            measure.values.forEach(value => {
                 const td = element('td');
-                if (row.balls[this.position] === value) td.append(ball(value, this.data.game.type === 'racing'));
+                if (current === value) td.append(this.marker(value, measure));
                 else td.append(element('span', '·', 'portal-trend-dot'));
                 tr.append(td);
             });
@@ -133,12 +137,11 @@ class DrawHistoryPanel {
     }
 
     statistics(body, rows) {
-        this.data.game.range.forEach(value => {
-            const count = rows.filter(row => row.balls[this.position] === value).length;
-            const percent = (count * 100 / rows.length).toFixed(1);
+        const measure = this.measure();
+        analysisCounts(rows, measure).forEach(({value, count, percent}) => {
             const tr = element('tr');
             const number = element('td');
-            number.append(ball(value, this.data.game.type === 'racing'));
+            number.append(this.marker(value, measure));
             const proportion = element('td');
             const bar = element('div', '', 'portal-frequency');
             const fill = element('span');
@@ -148,6 +151,14 @@ class DrawHistoryPanel {
             tr.append(number, element('td', count), proportion);
             body.append(tr);
         });
+    }
+
+    measure() {
+        return this.data.game.analysis.find(option => option.key === this.measureKey) || this.data.game.analysis[0];
+    }
+
+    marker(value, measure) {
+        return ball(value, measure.field === 'balls' && this.data.game.type === 'racing');
     }
 }
 

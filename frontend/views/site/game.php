@@ -30,7 +30,7 @@ $this->registerJs('window.portalGameData = ' . Json::htmlEncode($data) . '; wind
         <button type="button" role="tab" id="tab-statistics" aria-selected="false" aria-controls="portal-game-panel" data-tab="statistics">统计</button>
     </nav>
     <div class="portal-options">
-        <label data-region="position-control" hidden>位置 <select data-field="position" aria-label="号码位置"><?php foreach ($data['game']['positions'] as $index => $label): ?><option value="<?= $index ?>"><?= Html::encode($label) ?></option><?php endforeach; ?></select></label>
+        <label data-region="analysis-control" hidden>项目 <select data-field="analysis" aria-label="分析项目"><?php foreach ($data['game']['analysis'] as $option): ?><option value="<?= Html::encode($option['key']) ?>"><?= Html::encode($option['label']) ?></option><?php endforeach; ?></select></label>
         <label>显示 <select data-field="limit" aria-label="显示期数"><option value="20">最近20期</option><option value="50">最近50期</option><option value="100" selected>最近100期</option></select></label>
         <span data-region="samples"></span>
     </div>

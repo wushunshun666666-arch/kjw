@@ -144,4 +144,24 @@ final class MultiGameTest extends TestCase
         }
         self::assertTrue((new GameForm(['game' => 'jsssc']))->validate());
     }
+
+    /** 六个彩种提供总和或冠亚和、大小单双及全部位置，不混用两类号码范围。 */
+    public function testAnalysisOptionsForEveryGame(): void
+    {
+        foreach (['az51', 'xyft_168', 'jspk10', 'jsssc', 'jsft_168', 'az10'] as $code) {
+            $data = (new GamePortalService())->open($code);
+            $racing = $data['game']['type'] === 'racing';
+            $options = array_column($data['game']['analysis'], null, 'key');
+            self::assertSame($racing ? '冠亚和' : '总和', $options['sum']['label']);
+            self::assertSame($racing ? range(3, 19) : range(0, 45), $options['sum']['values']);
+            self::assertSame(['大', '小'], $options['size']['values']);
+            self::assertSame(['单', '双'], $options['parity']['values']);
+            self::assertCount($racing ? 13 : 8, $options);
+            foreach ($data['game']['positions'] as $position => $label) {
+                self::assertSame($label, $options['position-' . $position]['label']);
+                self::assertSame($position, $options['position-' . $position]['position']);
+                self::assertSame($racing ? range(1, 10) : range(0, 9), $options['position-' . $position]['values']);
+            }
+        }
+    }
 }
