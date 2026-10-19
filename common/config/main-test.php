@@ -4,7 +4,7 @@
  * @author suxh
  */
 
-return [
+$config = [
     'components' => [
         'db' => [
             'class' => 'yii\db\Connection',
@@ -46,3 +46,5 @@ return [
         ],
     ],
 ];
+
+return (require __DIR__ . '/merge-local.php')($config);

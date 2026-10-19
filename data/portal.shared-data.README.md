@@ -29,6 +29,14 @@
 
 检查前台、后台及 CLI 实际读取的环境配置。前台入口使用 `YII_ENV`，当前 CLI 与后台入口的环境选择依据见 [portal.README.md](portal.README.md)；不要假定三个入口总是读取同一份环境文件。数据库密码和共享凭据只保存在服务器私有配置中。
 
+### 同一仓库部署多个站点
+
+每个独立站点使用自己的 Git 工作目录。复制 `common/config/main-local.example.php` 为同目录的 `main-local.php`，填写该站的数据库名、数据库用户和密码；前台、后台和 CLI 的 `dev`、`test`、`prod` 环境均会应用此私有文件。示例使用本站运行目录的 FileCache，避免多个客户共用 Redis 缓存；若自行改用 Redis，必须为各站设置独立命名空间。只需要为整个站点创建一份私有配置，前台和后台不要分别连不同数据库。
+
+`main-local.php` 和 `lottery-data-local.php` 都已加入 `.gitignore`，模板与业务代码提交 Git，各站的真实配置不提交。更新前先确认私有文件未被 Git 跟踪（`git ls-files common/config/main-local.php common/config/lottery-data-local.php` 应无输出），然后在各站项目目录执行 `git pull --ff-only origin main`。更新业务代码会保留已有私有文件；不要使用 `git clean -fdx`，也不要在更新时重新复制模板覆盖私有配置。若旧项目曾经把真实配置提交 Git，应先迁出跟踪并轮换其中的凭据。
+
+没有 `main-local.php` 时仍使用原环境默认值，因此新分站必须先完成本站配置后再开放访问。不要直接修改被 Git 管理的 `main-dev.php`、`main-test.php` 或 `main-prod.php` 来填写客户数据库。
+
 ## 私有共享配置
 
 复制仓库示例 `common/config/lottery-data.example.php` 为同目录的 `lottery-data-local.php`。后者已被 Git 忽略，且位于 Web 根目录之外。限制其读取权限为运行 PHP 的系统用户或专用组，禁止通过备份下载、静态目录映射等方式公开。

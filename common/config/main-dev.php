@@ -47,15 +47,4 @@ $config = [
     ],
 ];
 
-$localConfigFile = __DIR__ . '/main-local.php';
-if (is_file($localConfigFile)) {
-    $localConfig = require $localConfigFile;
-    // Components that change implementation must be replaced, not recursively
-    // merged with implementation-specific options from the shared dev config.
-    if (isset($localConfig['components']['cache'])) {
-        unset($config['components']['cache']);
-    }
-    $config = \yii\helpers\ArrayHelper::merge($config, $localConfig);
-}
-
-return $config;
+return (require __DIR__ . '/merge-local.php')($config);
