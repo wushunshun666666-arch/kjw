@@ -1,0 +1,218 @@
+/** Build text-only DOM for public draw data; never interpolate upstream HTML. */
+function element(tag, text = '', className = '') {
+    const node = document.createElement(tag);
+    node.textContent = text;
+    if (className) node.className = className;
+    return node;
+}
+
+/** Preserve number order and apply racing's two-digit display. */
+function ball(value, racing) {
+    return element('span', racing ? String(value).padStart(2, '0') : String(value),
+        `portal-ball${racing ? ` racing-ball racing-${value}` : ''}`);
+}
+
+/** Latest draw and collection status have a single rendering owner. */
+class LatestDrawPanel {
+    constructor(root) {
+        this.root = root;
+    }
+
+    render(data, connectionError = false) {
+        const latest = data.list[0];
+        this.root.querySelector('[data-region="issue"]').textContent = latest
+            ? `第 ${latest.issue} 期　${latest.time}` : '等待采集数据';
+        this.root.querySelector('[data-region="balls"]').replaceChildren(
+            ...(latest ? latest.balls.map(value => ball(value, data.game.type === 'racing')) : []));
+        this.root.querySelector('[data-region="summary"]').textContent = latest
+            ? `${data.game.sum_label} ${latest.sum}　${latest.size}　${latest.parity}` : '';
+        const status = connectionError ? '页面更新失败，正在重试；下方保留最近读取的数据。'
+            : data.collection.unavailable ? '采集源暂未返回有效数据，正在重试。'
+            : !latest ? '暂无已入库开奖记录，请等待采集。'
+            : `最近采集：${data.collection.success_time || '暂无'}（北京时间）`;
+        this.root.querySelector('[data-region="status"]').textContent = status;
+    }
+}
+
+/** Results, per-position trends and sample frequencies share one data window. */
+class DrawHistoryPanel {
+    constructor(root, data) {
+        this.root = root;
+        this.data = data;
+        this.tab = 'result';
+        this.position = 0;
+        this.limit = 100;
+        this.init();
+    }
+
+    init() {
+        this.root.querySelectorAll('[data-tab]').forEach(button => {
+            button.addEventListener('click', () => this.selectTab(button.dataset.tab));
+            button.addEventListener('keydown', event => {
+                const tabs = ['result', 'trend', 'statistics'];
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === 'Home' ? 0 : event.key === 'End' ? 2
+                    : (tabs.indexOf(this.tab) + (event.key === 'ArrowRight' ? 1 : 2)) % 3;
+                this.selectTab(tabs[next]);
+                this.root.querySelector(`[data-tab="${tabs[next]}"]`).focus();
+            });
+        });
+        this.root.querySelector('[data-field="position"]').addEventListener('change', event => {
+            this.position = Number(event.target.value);
+            this.render();
+        });
+        this.root.querySelector('[data-field="limit"]').addEventListener('change', event => {
+            this.limit = Number(event.target.value);
+            this.render();
+        });
+        this.selectTab('result');
+    }
+
+    selectTab(tab) {
+        this.tab = tab;
+        this.root.querySelectorAll('[data-tab]').forEach(button => {
+            const active = button.dataset.tab === tab;
+            button.setAttribute('aria-selected', String(active));
+            button.tabIndex = active ? 0 : -1;
+        });
+        this.root.querySelector('[data-region="position-control"]').hidden = tab === 'result';
+        this.root.querySelector('[role="tabpanel"]').setAttribute('aria-labelledby', `tab-${tab}`);
+        this.render();
+    }
+
+    update(data) {
+        this.data = data;
+        this.render();
+    }
+
+    render() {
+        const rows = this.data.list.slice(0, this.limit);
+        const target = this.root.querySelector('[data-region="table"]');
+        this.root.querySelector('[data-region="samples"]').textContent = `实际 ${rows.length} 期`;
+        if (!rows.length) {
+            target.replaceChildren(element('p', '暂无开奖记录，采集成功后自动展示。', 'portal-empty'));
+            return;
+        }
+        const table = element('table', '', `portal-data-table portal-${this.tab}`);
+        const head = element('thead');
+        const tr = element('tr');
+        const titles = this.tab === 'result' ? ['期号 / 开奖时间', '开奖号码', this.data.game.sum_label, '大小', '单双']
+            : this.tab === 'trend' ? ['期号', ...this.data.game.range.map(String)] : ['号码', '出现次数', '占比'];
+        titles.forEach(title => { const th = element('th', title); th.scope = 'col'; tr.append(th); });
+        head.append(tr);
+        const body = element('tbody');
+        if (this.tab === 'statistics') this.statistics(body, rows);
+        else rows.forEach(row => this.drawRow(body, row));
+        table.append(head, body);
+        target.replaceChildren(table);
+    }
+
+    drawRow(body, row) {
+        const tr = element('tr');
+        const issue = element('td', row.issue, 'portal-issue-cell');
+        if (this.tab === 'result') {
+            issue.append(element('small', row.time));
+            const numbers = element('td');
+            const group = element('div', '', 'portal-balls');
+            group.append(...row.balls.map(value => ball(value, this.data.game.type === 'racing')));
+            numbers.append(group);
+            tr.append(issue, numbers, element('td', row.sum), element('td', row.size), element('td', row.parity));
+        } else {
+            tr.append(issue);
+            this.data.game.range.forEach(value => {
+                const td = element('td');
+                if (row.balls[this.position] === value) td.append(ball(value, this.data.game.type === 'racing'));
+                else td.append(element('span', '·', 'portal-trend-dot'));
+                tr.append(td);
+            });
+        }
+        body.append(tr);
+    }
+
+    statistics(body, rows) {
+        this.data.game.range.forEach(value => {
+            const count = rows.filter(row => row.balls[this.position] === value).length;
+            const percent = (count * 100 / rows.length).toFixed(1);
+            const tr = element('tr');
+            const number = element('td');
+            number.append(ball(value, this.data.game.type === 'racing'));
+            const proportion = element('td');
+            const bar = element('div', '', 'portal-frequency');
+            const fill = element('span');
+            fill.style.width = `${percent}%`;
+            bar.append(fill);
+            proportion.append(element('span', `${percent}%`), bar);
+            tr.append(number, element('td', count), proportion);
+            body.append(tr);
+        });
+    }
+}
+
+/** Advertisement controls only manage their own region. */
+class AdvertisementPanel {
+    constructor(root) {
+        const button = root.querySelector('[data-action="ads"]');
+        const ads = root.querySelector('[data-region="ads"]');
+        button.addEventListener('click', () => {
+            ads.hidden = !ads.hidden;
+            button.textContent = ads.hidden ? '展开广告' : '收起广告';
+            button.setAttribute('aria-expanded', String(!ads.hidden));
+        });
+    }
+}
+
+/** Poll only the local read endpoint, with overlap prevention and teardown. */
+class GamePortal {
+    constructor(root, data, url) {
+        this.data = data;
+        this.url = url;
+        this.latest = new LatestDrawPanel(root);
+        this.history = new DrawHistoryPanel(root, data);
+        this.advertisement = new AdvertisementPanel(root);
+        this.button = root.querySelector('[data-action="refresh"]');
+        this.pending = false;
+        this.init();
+    }
+
+    init() {
+        this.latest.render(this.data);
+        this.button.addEventListener('click', () => this.refresh());
+        this.timer = setInterval(() => { if (!document.hidden) this.refresh(); }, 5000);
+        window.addEventListener('pagehide', () => this.destroy(), {once: true});
+        window.addEventListener('pageshow', event => { if (event.persisted) window.location.reload(); });
+    }
+
+    async refresh() {
+        if (this.pending) return;
+        this.pending = true;
+        this.button.disabled = true;
+        this.button.textContent = '刷新中…';
+        this.request = new AbortController();
+        const timeout = setTimeout(() => this.request.abort(), 12000);
+        try {
+            const response = await fetch(this.url, {signal: this.request.signal, cache: 'no-store', credentials: 'same-origin'});
+            if (!response.ok) throw new Error('Request failed');
+            const payload = await response.json();
+            if (payload.code !== 200 || payload.data.game.code !== this.data.game.code || !Array.isArray(payload.data.list)) throw new Error('Unexpected game data');
+            this.data = payload.data;
+            this.latest.render(this.data);
+            this.history.update(this.data);
+        } catch {
+            this.latest.render(this.data, true);
+        } finally {
+            clearTimeout(timeout);
+            this.pending = false;
+            this.button.disabled = false;
+            this.button.textContent = '刷新';
+        }
+    }
+
+    destroy() {
+        clearInterval(this.timer);
+        this.request?.abort();
+    }
+}
+
+const root = document.getElementById('multi-portal');
+if (root) new GamePortal(root, window.portalGameData, window.portalGameUrl);

@@ -1,0 +1,90 @@
+@charset "utf-8";
+
+/*产品查询*********************************/
+.table-catalog { }
+.table-catalog > table {margin-bottom: 0px;}
+.table-catalog > table > thead > tr > th { background: #3c8dbc none repeat scroll 0 0; color: #fff; border: 1px solid #3c8dbc;}
+.table-catalog > table > tbody > tr > td {border: 1px solid #3c8dbc;}
+.table-catalog .form-check {display:block; margin-bottom: 8px;}
+
+/*查询区*/
+.qry-nav {margin-bottom: 10px; }
+.qry-nav .groups { border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; }
+.qry-nav .group { border-top: 1px dashed #dedede; position: relative; margin:0 8px;}
+.qry-nav .group.first {border-top:none;}
+.qry-nav .group .head { left: 0px; position: absolute; top: 9px; }
+.qry-nav .group .body { padding: 0 60px 0 112px; }
+.qry-nav .group .foot { position: absolute; right: 0; top: 8px; }
+.qry-nav .group .body .items { height: 36px; overflow: hidden; }
+.qry-nav .group .body .items .items-inner { display:table; }
+.qry-nav .group .body .items .text { line-height:36px;}
+.qry-nav .group .body .items .form-check {width:120px; float:left; margin: 8px 0;}
+.qry-nav .group .foot .more, .qry-nav .group .foot .less { display:none; cursor: pointer; color: #3c8dbc;}
+.qry-nav .group .foot .more:hover, .qry-nav .group .foot .less:hover { color: #72afd2;}
+
+/*排序*/
+.qry-bar {padding:8px 8px;background-color: #f5f5f5;border: 1px solid #e8e8e8;height: 36px;margin-bottom: 10px; }
+.qry-bar .filters-bar .form-check {margin-left:12px; }
+.qry-bar .sort-bar {border-right: 1px solid #e8e8e8}
+.qry-bar .tool-bar .tool {line-height: 20px; cursor: pointer; margin-left: 20px;}
+.qry-bar .sort-bar .sort {margin-right: 5px; line-height: 20px; display: block; width: 50px; float: left; color: #485454; cursor: pointer}
+.qry-bar .sort-bar .sort.active {color: #2983ec}
+
+/*列表*/
+.tr-box > td > div {margin-top: 10px; margin-bottom: 10px}
+
+
+
+
+/*车型查询框*/
+.query-bar { text-align: center; margin-bottom:15px;}
+.car-style-query-bar {height:30px; width:600px; margin:0 auto; padding-left:0px; }
+.car-style-query-bar li { list-style: outside none none;}
+.car-style-query-bar > li {float: left; padding: 0 10px; width:25%; position: relative; z-index: 90;}
+.car-style-query-bar > li a { cursor: pointer; font-size:18px; height: 30px; color: #333; }
+.car-style-query-bar > li a .title { overflow: hidden; text-align: center; display: inline-block; height: 30px; width: 100px }
+.car-style-query-bar > li a.disabled { color: #c2c6c1; }
+
+.car-style-query-bar > li .fa-angle-down { position: absolute; text-indent: 7px; line-height: 30.7px; }
+
+.popup {
+	padding: 20px 0px 20px 5px;
+    background: #FFF none repeat scroll 0% 0%;
+    border: 2px solid #1f6fa6;
+    border-radius: 4px;
+    box-shadow: 2px 2px 3px rgba(186, 186, 186, 0.5);
+    position: absolute;
+    display: none;
+    z-index: 12;
+    max-height: 500px;
+    overflow: auto;
+}
+.pop-car-years {width: 250px; padding: 5px 0 5px 0;}
+.pop-car-displacements {width: 250px; padding: 5px 0 5px 0;}
+
+.popup .sub-car-maker a:hover, .popup ul.brand-cars li a:hover, .popup .sub-car-years:hover, .popup .sub-car-displacements:hover { color: #ff7d25; }
+.popup .sub-car-maker a.cur, .popup ul.brand-cars li a.cur, .popup .sub-car-years.cur, .popup .sub-car-displacements.cur { color: #ff7d25; }
+
+
+/*车品牌弹窗*/
+.pop-car-brand { width: 900px; margin-top: 5px; margin-left: -150px; }
+.pop-car-brand ul {padding-left:10px;}
+.popup ul.brand-letter li { float: left; padding: 0px 10px; margin-right: 5px; height: 24px;font: 14px/24px "Microsoft Yahei";color: #999; text-align: center; cursor: pointer;}
+.popup ul.brand-letter li:hover { border-radius: 3px; color: #FFF; background: #1f6fa6 none repeat scroll 0% 0%; }
+.popup ul.brand-letter li.cur { border-radius: 3px; color: #FFF; background: #1f6fa6 none repeat scroll 0% 0%; }
+
+.popup ul.brand-cars {margin-top:15px;}
+.popup ul.brand-cars li { float: left; width: auto; padding:0px; text-align: left}
+.popup ul.brand-cars li a { color: #666; font: 14px/24px "Microsoft Yahei"; display: inline-block; padding: 2px 10px; margin-bottom: 10px;}
+
+/*车系弹窗*/
+.pop-car-series { width: 900px; margin-top: 5px; margin-left: -300px; }
+.popup .sub-car-maker .maker-title { color: #b2b2b2; font: 14px/24px "Microsoft Yahei"; margin: 0px 10px 10px 25px;
+    padding: 2px 5px 15px 0; float: left; width: 90%; text-align: left; border-width: 0 0 1px 0; border-style: solid; }
+
+/*车系 年份 排量*/
+.popup .sub-car-maker a, .popup .sub-car-years, .popup .sub-car-displacements { color: #666; font: 14px/24px "Microsoft Yahei";
+    float: left; display: inline-block; min-width: 120px; padding: 2px 5px; }
+
+/*年份排量*/
+.popup .sub-car-years, .popup .sub-car-displacements { padding: 2px 20px 0px 20px; height: 30px; }

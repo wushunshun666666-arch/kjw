@@ -1,0 +1,21 @@
+{
+    "captured_at": "2026-10-18T06:32:34+08:00",
+    "draw_count": 67,
+    "prediction_count": 23,
+    "first_prediction": {
+        "issue": "3495354",
+        "create_time": "2026-10-18 05:15:56",
+        "algorithm": "weighted-frequency-v1",
+        "sample_count": 45
+    },
+    "last_prediction": {
+        "issue": "3495376",
+        "source_issue": "3495375",
+        "create_time": "2026-10-18 06:31:21",
+        "target_time": "2026-10-18 06:34:30",
+        "algorithm": "weighted-frequency-v1",
+        "sample_count": 67,
+        "pdx": "大",
+        "pds": "双"
+    }
+}

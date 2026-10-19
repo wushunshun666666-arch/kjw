@@ -1,0 +1,36 @@
+# phpstorm project files
+.idea
+
+# netbeans project files
+nbproject
+
+# zend studio for eclipse project files
+.buildpath
+.project
+.settings
+.user.ini
+
+# windows thumbnail cache
+Thumbs.db
+
+# vendor is versioned for this legacy project because framework, third-party
+# packages and project-owned mylibs/AdminLTE are delivered together.
+
+# composer itself is not needed
+composer.phar
+
+# Mac DS_Store Files
+.DS_Store
+
+# phpunit itself is not needed
+phpunit.phar
+# local phpunit config
+/phpunit.xml
+.phpunit.result.cache
+
+# machine-specific development credentials
+/common/config/main-local.php
+/console/config/main-local.php
+/api/config/main-local.php
+/api/runtime/
+/console/workerman.log

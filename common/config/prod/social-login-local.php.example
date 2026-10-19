@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * 生产环境第三方登录私密配置示例。
+ *
+ * 请复制为 social-login-local.php 后填写真实平台资料；该文件不得提交。
+ */
+
+return [
+    'allowedReturnOrigins' => [
+        'https://client.example.com',
+    ],
+    'providers' => [
+        // 2000 => [
+        //     'enabled' => true,
+        //     'class' => common\oauth\QqSocialOAuthAdapter::class,
+        //     'appId' => 'QQ App ID',
+        //     'appSecret' => 'QQ App Secret',
+        //     'callbackUrl' => 'https://api.84459.shop/auth/oauth/callback',
+        // ],
+    ],
+];

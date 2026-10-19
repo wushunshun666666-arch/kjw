@@ -1,0 +1,156 @@
+{
+  "reference": {
+    "bodyStyle": {
+      "background": "rgba(0, 0, 0, 0)",
+      "font": "-apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Helvetica, \"Segoe UI\", Arial, Roboto, \"PingFang SC\", miui, \"Hiragino Sans GB\", \"Microsoft Yahei\", sans-serif"
+    },
+    "height": 1000,
+    "images": [
+      {
+        "alt": "ad",
+        "rect": {
+          "h": 513,
+          "w": 1300,
+          "x": 66,
+          "y": 60
+        }
+      },
+      {
+        "alt": "qrcode",
+        "rect": {
+          "h": 442,
+          "w": 442,
+          "x": 898,
+          "y": 99.95000457763672
+        }
+      },
+      {
+        "alt": "ad",
+        "rect": {
+          "h": 217,
+          "w": 1300,
+          "x": 66,
+          "y": 572.7125244140625
+        }
+      }
+    ],
+    "links": [
+      {
+        "class": "",
+        "text": ""
+      },
+      {
+        "class": "sc",
+        "text": "咪牌"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none active",
+        "text": "结果"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none",
+        "text": "走势"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none",
+        "text": "统计"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none",
+        "text": "预测"
+      },
+      {
+        "class": "text-blue-600 underline",
+        "text": "登录或注册！"
+      },
+      {
+        "class": "fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#b21824] text-white py-3 px-1 rounded-l-lg shadow-lg cursor-pointer hover:bg-red-700 transition-colors duration-200 flex flex-col items-center justify-center border-l border-t border-b border-white/20",
+        "text": "公告"
+      }
+    ],
+    "structure": [
+      {
+        "class": "app-container",
+        "tag": "DIV"
+      }
+    ],
+    "width": 1440
+  },
+  "local": {
+    "bodyStyle": {
+      "background": "rgba(0, 0, 0, 0)",
+      "font": "-apple-system, BlinkMacSystemFont, \"Helvetica Neue\", Helvetica, \"Segoe UI\", Arial, Roboto, \"PingFang SC\", miui, \"Hiragino Sans GB\", \"Microsoft Yahei\", sans-serif"
+    },
+    "height": 1000,
+    "images": [
+      {
+        "alt": "ad",
+        "rect": {
+          "h": 513,
+          "w": 1300,
+          "x": 66,
+          "y": 60
+        }
+      },
+      {
+        "alt": "qrcode",
+        "rect": {
+          "h": 442,
+          "w": 442,
+          "x": 898,
+          "y": 99.95000457763672
+        }
+      },
+      {
+        "alt": "ad",
+        "rect": {
+          "h": 217,
+          "w": 1300,
+          "x": 66,
+          "y": 572.7125244140625
+        }
+      }
+    ],
+    "links": [
+      {
+        "class": "",
+        "text": ""
+      },
+      {
+        "class": "sc",
+        "text": "咪牌"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none active",
+        "text": "结果"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none",
+        "text": "走势"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none",
+        "text": "统计"
+      },
+      {
+        "class": "menu-item cursor-pointer select-none",
+        "text": "预测"
+      },
+      {
+        "class": "text-blue-600 underline",
+        "text": "登录或注册！"
+      },
+      {
+        "class": "fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#b21824] text-white py-3 px-1 rounded-l-lg shadow-lg cursor-pointer hover:bg-red-700 transition-colors duration-200 flex flex-col items-center justify-center border-l border-t border-b border-white/20",
+        "text": "公告"
+      }
+    ],
+    "structure": [
+      {
+        "class": "app-container",
+        "tag": "DIV"
+      }
+    ],
+    "width": 1440
+  }
+}

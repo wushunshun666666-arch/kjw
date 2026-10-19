@@ -1,0 +1,234 @@
+- generic: 收藏永久地址：jnd68.com
+- img "ad"
+- img "qrcode"
+- link "ad":
+  - /url: https://tfajn.hcjwj.com/app/register.php?site_id=2081&pt=B9C93FB4-B763-B3D9-588E-2163C860FA12
+  - img "ad"
+- generic: 收起
+- generic: 最新:3495355期数
+- generic: 咪牌
+- generic: "0"
+- generic: +
+- generic: "6"
+- generic: +
+- generic: "9"
+- generic: =
+- generic: "15"
+- generic: 大
+- generic: 单
+- timer:
+  - generic: 下一期：
+  - generic: "1"
+  - generic: 分
+  - generic: "39"
+  - generic: 秒
+- generic: 
+- generic: 各项福利介绍请看右方公告！！！各项福利介绍请看右方公告！！！各项福利介绍请看右方公告！！！
+- generic: 各项福利介绍请看右方公告！！！各项福利介绍请看右方公告！！！各项福利介绍请看右方公告！！！
+- generic: 结果
+- generic: 走势
+- generic: 统计
+- generic: 预测
+- generic: 大小单双
+- table:
+  - rowgroup:
+    - row "单数未开 0 期数 双数未开 2 期数":
+      - cell "单数未开 0 期数":
+        - generic: 单数未开
+        - generic: "0"
+        - generic: 期数
+      - cell "双数未开 2 期数":
+        - generic: 双数未开
+        - generic: "2"
+        - generic: 期数
+    - row "小数未开 3 期数 大数未开 0 期数":
+      - cell "小数未开 3 期数":
+        - generic: 小数未开
+        - generic: "3"
+        - generic: 期数
+      - cell "大数未开 0 期数":
+        - generic: 大数未开
+        - generic: "0"
+        - generic: 期数
+- generic: 组合
+- table:
+  - rowgroup:
+    - row "大单未开 0 期数 大双未开 2 期数":
+      - cell "大单未开 0 期数":
+        - generic: 大单未开
+        - generic: "0"
+        - generic: 期数
+      - cell "大双未开 2 期数":
+        - generic: 大双未开
+        - generic: "2"
+        - generic: 期数
+    - row "小单未开 0 期数 小双未开 1 期数":
+      - cell "小单未开 0 期数":
+        - generic: 小单未开
+        - generic: "0"
+        - generic: 期数
+      - cell "小双未开 1 期数":
+        - generic: 小双未开
+        - generic: "1"
+        - generic: 期数
+- generic: 单点数字
+- table:
+  - rowgroup:
+    - row "13 （未开 20 期数） 14 （未开 14 期数）":
+      - cell "13 （未开 20 期数）":
+        - generic: "13"
+        - generic: （未开
+        - generic: "20"
+        - generic: 期数）
+      - cell "14 （未开 14 期数）":
+        - generic: "14"
+        - generic: （未开
+        - generic: "14"
+        - generic: 期数）
+    - row "12 （未开 4 期数） 15 （未开 0 期数）":
+      - cell "12 （未开 4 期数）":
+        - generic: "12"
+        - generic: （未开
+        - generic: "4"
+        - generic: 期数）
+      - cell "15 （未开 0 期数）":
+        - generic: "15"
+        - generic: （未开
+        - generic: "0"
+        - generic: 期数）
+    - row "11 （未开 5 期数） 16 （未开 25 期数）":
+      - cell "11 （未开 5 期数）":
+        - generic: "11"
+        - generic: （未开
+        - generic: "5"
+        - generic: 期数）
+      - cell "16 （未开 25 期数）":
+        - generic: "16"
+        - generic: （未开
+        - generic: "25"
+        - generic: 期数）
+    - row "10 （未开 47 期数） 17 （未开 40 期数）":
+      - cell "10 （未开 47 期数）":
+        - generic: "10"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+      - cell "17 （未开 40 期数）":
+        - generic: "17"
+        - generic: （未开
+        - generic: "40"
+        - generic: 期数）
+    - row "9 （未开 7 期数） 18 （未开 19 期数）":
+      - cell "9 （未开 7 期数）":
+        - generic: "9"
+        - generic: （未开
+        - generic: "7"
+        - generic: 期数）
+      - cell "18 （未开 19 期数）":
+        - generic: "18"
+        - generic: （未开
+        - generic: "19"
+        - generic: 期数）
+    - row "8 （未开 31 期数） 19 （未开 1 期数）":
+      - cell "8 （未开 31 期数）":
+        - generic: "8"
+        - generic: （未开
+        - generic: "31"
+        - generic: 期数）
+      - cell "19 （未开 1 期数）":
+        - generic: "19"
+        - generic: （未开
+        - generic: "1"
+        - generic: 期数）
+    - row "7 （未开 3 期数） 20 （未开 18 期数）":
+      - cell "7 （未开 3 期数）":
+        - generic: "7"
+        - generic: （未开
+        - generic: "3"
+        - generic: 期数）
+      - cell "20 （未开 18 期数）":
+        - generic: "20"
+        - generic: （未开
+        - generic: "18"
+        - generic: 期数）
+    - row "6 （未开 30 期数） 21 （未开 35 期数）":
+      - cell "6 （未开 30 期数）":
+        - generic: "6"
+        - generic: （未开
+        - generic: "30"
+        - generic: 期数）
+      - cell "21 （未开 35 期数）":
+        - generic: "21"
+        - generic: （未开
+        - generic: "35"
+        - generic: 期数）
+    - row "5 （未开 16 期数） 22 （未开 2 期数）":
+      - cell "5 （未开 16 期数）":
+        - generic: "5"
+        - generic: （未开
+        - generic: "16"
+        - generic: 期数）
+      - cell "22 （未开 2 期数）":
+        - generic: "22"
+        - generic: （未开
+        - generic: "2"
+        - generic: 期数）
+    - row "4 （未开 47 期数） 23 （未开 12 期数）":
+      - cell "4 （未开 47 期数）":
+        - generic: "4"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+      - cell "23 （未开 12 期数）":
+        - generic: "23"
+        - generic: （未开
+        - generic: "12"
+        - generic: 期数）
+    - row "3 （未开 47 期数） 24 （未开 47 期数）":
+      - cell "3 （未开 47 期数）":
+        - generic: "3"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+      - cell "24 （未开 47 期数）":
+        - generic: "24"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+    - row "2 （未开 47 期数） 25 （未开 47 期数）":
+      - cell "2 （未开 47 期数）":
+        - generic: "2"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+      - cell "25 （未开 47 期数）":
+        - generic: "25"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+    - row "1 （未开 47 期数） 26 （未开 47 期数）":
+      - cell "1 （未开 47 期数）":
+        - generic: "1"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+      - cell "26 （未开 47 期数）":
+        - generic: "26"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+    - row "0 （未开 47 期数） 27 （未开 47 期数）":
+      - cell "0 （未开 47 期数）":
+        - generic: "0"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+      - cell "27 （未开 47 期数）":
+        - generic: "27"
+        - generic: （未开
+        - generic: "47"
+        - generic: 期数）
+- link " 公告":
+  - /url: "#/notice"
+  - generic: 
+  - generic: 公告

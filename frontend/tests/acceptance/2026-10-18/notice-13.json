@@ -1,0 +1,21 @@
+{
+  "reference": {
+    "images": [
+      {
+        "ok": true,
+        "src": "https://pc28p.com/storage/ad/20260828/0eaf53de43fe3349e6369730e3b4e56d.png"
+      }
+    ],
+    "text": "公告详情\n每日首充\n2026-08-28 17:54:18\n官方团队"
+  },
+  "local": {
+    "images": [
+      {
+        "ok": false,
+        "src": "https://pc28p.com/storage/ad/20260828/0eaf53de43fe3349e6369730e3b4e56d.png"
+      }
+    ],
+    "text": "公告详情\n每日首充\n2026-08-28 17:54:18\n官方团队"
+  },
+  "subsequent_local_image_check": true
+}

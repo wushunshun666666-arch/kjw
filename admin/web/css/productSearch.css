@@ -1,0 +1,363 @@
+@charset "UTF-8";
+/* CSS Document */
+
+input { outline: none; }
+button {
+  font-family: "Microsoft YaHei",tahoma,arial,"Hiragino Sans GB";
+  border: none;
+  font-size: 14px; }
+
+/*产品分类*/
+.product-classify {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  bottom: 0;
+  width: 240px;
+  background: #4c4743; }
+  .product-classify li {
+    line-height: 60px;
+    height: 60px;
+    border-top: 1px solid #666;
+    padding-left: 40px;
+    font-size: 16px;
+    color: #fff; }
+  .product-classify li:first-of-type {
+    border-top: none; }
+  .product-classify i {
+    margin-right: 30px;
+    font-size: 20px; }
+  .product-classify li:hover {
+    color: #dd4b39; }
+  .product-classify li.active, .product-classify li.active + li {
+    border-top: none; }
+  .product-classify li.active {
+    background: #ecf0f5;
+    color: #dd4b39;
+    border-left: 4px solid #dd4b39;
+    font-weight: bold;
+    padding-left: 36px; }
+
+.product-main {
+  position: fixed;
+  right: 0;
+  top: 0px;
+  bottom: 0;
+  width: calc(100%);
+  padding: 0px; }
+
+/*查询模块*/
+.search-modula {
+  position: relative;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 20px; }
+  .search-modula .choose span {
+    display: inline-block;
+    width: 60px;
+    text-align: center;
+    line-height: 30px;
+    font-size: 14px; }
+  .search-modula .choose span.active {
+    background: #dd4b39;
+    color: #fff; }
+  .search-modula .input {
+    border: 2px solid #3c8dbc; }
+    .search-modula .input input {
+      border: none;
+      width: 400px;
+      height: 36px;
+      padding-left: 10px;
+      position: relative;
+      top: -1px; }
+    .search-modula .input button {
+      background: #3c8dbc;
+      width: 96px;
+      height: 38px;
+      color: #fff; }
+
+/*产品查询主要内容*/
+.product-main-content {
+  background: #fff;
+  border-radius: 3px;
+  overflow: hidden; }
+  .product-main-content header {
+    background: #3c8dbc;
+    padding: 30px 40px;
+    color: #fff;
+    font-size: 16px; }
+    .product-main-content header i {
+      font-size: 24px;
+      margin-right: 5px;
+      position: relative;
+      top: 3px; }
+    .product-main-content header span {
+      margin: 0 30px 0 10px; }
+    .product-main-content header button {
+      margin-left: 10px;
+      width: 120px;
+      height: 32px;
+      border-radius: 3px; }
+    .product-main-content header .change {
+      background: #fff;
+      color: #f39c12; }
+    .product-main-content header .clear {
+      border: 1px solid #fff;
+      color: #fff;
+      background: none; }
+
+/*选择车型弹框*/
+.choose-car-type {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  /*搜索类型*/
+  /*底部两个按钮*/
+  /*搜索框*/ }
+  .choose-car-type .choose-title {
+    line-height: 60px;
+    height: 60px;
+    background: #fafafa;
+    font-size: 14px;
+    position: relative;
+    color: #666; }
+    .choose-car-type .choose-title p span {
+      display: inline-block;
+      width: 120px;
+      margin-left: 20px;
+      text-align: center;
+      font-weight: bold; }
+    .choose-car-type .choose-title p span.active {
+      color: #dd4b39;
+      border-bottom: 2px solid #dd4b39; }
+    .choose-car-type .choose-title .close {
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-size: 30px;
+      width: 60px;
+      text-align: center;
+      display: block; }
+  .choose-car-type section {
+    position: absolute;
+    left: 50%;
+    margin-left: -390px;
+    width: 780px;
+    height: 500px;
+    top: 200px;
+    border-radius: 3px;
+    background: #fff;
+    overflow: hidden; }
+  .choose-car-type .bottom {
+    position: absolute;
+    bottom: 0;
+    background: #fafafa;
+    height: 50px;
+    padding: 9px 20px;
+    width: 100%; }
+    .choose-car-type .bottom button {
+      float: right;
+      margin-left: 10px;
+      width: 100px;
+      height: 32px;
+      border-radius: 3px; }
+    .choose-car-type .bottom .sure {
+      color: #fff;
+      background: #dd4b39; }
+    .choose-car-type .bottom .reset {
+      background: #fff; }
+    .choose-car-type .bottom button:hover {
+      opacity: 0.9; }
+  .choose-car-type .content {
+    padding: 20px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 390px; }
+  .choose-car-type .content::-webkit-scrollbar {
+    width: 0; }
+  .choose-car-type .step {
+    height: 30px; }
+    .choose-car-type .step span {
+      display: block;
+      float: left;
+      text-align: center;
+      background: #ecf0f5;
+      line-height: 30px;
+      width: calc((100% - 180px) / 4);
+      border-radius: 15px;
+      position: relative;
+      z-index: 99999;
+      margin-right: 60px; }
+    .choose-car-type .step span:last-of-type {
+      margin-right: 0; }
+    .choose-car-type .step span.active {
+      color: #fff;
+      background: #dd4b39; }
+    .choose-car-type .step .step-bg {
+      display: block;
+      width: 90%;
+      height: 6px;
+      background: #ecf0f5;
+      z-index: 0;
+      position: relative;
+      top: 13px; }
+  .choose-car-type .step-two-title {
+    color: #666;
+    margin-top: 10px;
+    font-size: 14px; }
+  .choose-car-type .search-box {
+    padding: 20px 50px; }
+    .choose-car-type .search-box input {
+      float: left;
+      width: calc(100% - 100px);
+      height: 36px;
+      padding-left: 10px;
+      border: 1px solid #ccc; }
+    .choose-car-type .search-box button {
+      float: left;
+      width: 100px;
+      height: 36px;
+      background: #ccc; }
+    .choose-car-type .search-box button:hover {
+      opacity: 0.9; }
+    .choose-car-type .search-box button:active {
+      background: #bbb; }
+
+/*选择车型步骤*/
+.step-content {
+  padding: 10px 0; }
+  .step-content .zimu {
+    margin: 5px 0; }
+    .step-content .zimu span {
+      display: inline-block;
+      color: #fa5f19;
+      padding: 3px 6px;
+      border: 1px solid #fa5f19;
+      position: relative; }
+      .step-content .zimu span i {
+        color: #fff;
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        margin-left: -10px;
+        font-size: 20px; }
+    .step-content .zimu .active, .step-content .zimu span:hover {
+      background: #fa5f19;
+      color: #fff; }
+      .step-content .zimu .active i, .step-content .zimu span:hover i {
+        color: #fa5f19; }
+  .step-content .yixuan span {
+    border: 1px solid #fa5f19;
+    color: #fa5f19;
+    background: #fbede7;
+    border-radius: 2px;
+    display: inline-block;
+    padding: 2px 3px 2px 5px;
+    margin-left: 5px; }
+  .step-content .yixuan small {
+    padding-left: 3px;
+    border-left: 1px solid #fa5f19;
+    font-size: 16px;
+    margin-left: 5px;
+    line-height: 16px; }
+
+/*车品牌列表*/
+.brand-list li {
+  float: left;
+  margin-right: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  padding: 5px 5px 38px;
+  height: 40px;
+  line-height: 30px;
+  width: calc((100% - 40px) / 5); }
+.brand-list li:nth-child(5n) {
+  margin-right: 0; }
+.brand-list li:hover {
+  color: #fa5f19;
+  border: 1px solid #fa5f19; }
+.brand-list img {
+  width: 35px;
+  height: 30px;
+  border-right: 1px solid #ccc;
+  margin-right: 5px;
+  padding-right: 5px;
+  vertical-align: middle; }
+
+.type-list li {
+  float: left;
+  margin-right: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  line-height: 40px;
+  width: calc((100% - 40px) / 5);
+  text-align: center; }
+.type-list li:nth-child(5n) {
+  margin-right: 0; }
+.type-list li:hover {
+  color: #fa5f19;
+  border: 1px solid #fa5f19; }
+
+.detail-list {
+  border-top: 1px solid #ccc;
+  padding: 20px;
+  margin-top: 20px; }
+  .detail-list li {
+    line-height: 30px;
+    padding-left: 10px;
+    width: 280px; }
+  .detail-list li:hover {
+    color: #fa5f19; }
+  .detail-list li.active {
+    color: #fa5f19;
+    border: 1px solid #fa5f19; }
+
+/*Vin查询结果*/
+.vin-content {
+  background: #fff;
+  border-radius: 3px;
+  padding: 20px; }
+  .vin-content table {
+    width: 100%;
+    border: 1px solid #eee;
+    border-collapse: collapse; }
+  .vin-content .result th {
+    background: #fafafa;
+    line-height: 30px;
+    border: 1px solid #eee;
+    text-align: center; }
+  .vin-content .result td {
+    line-height: 36px;
+    text-align: center;
+    border: 1px solid #eee; }
+  .vin-content .result a {
+    color: #3c8dbc;
+    cursor: pointer; }
+  .vin-content header {
+    color: #3c8dbc;
+    padding-bottom: 10px;
+    font-size: 20px; }
+    .vin-content header i {
+      font-size: 24px;
+      margin-right: 5px;
+      position: relative;
+      top: 2px; }
+  .vin-content .details {
+    width: 100%;
+    border: 1px solid #eee;
+    border-collapse: collapse; }
+    .vin-content .details td {
+      width: 16.66%;
+      border-bottom: 1px solid #eee;
+      line-height: 36px;
+      padding: 0 10px; }
+    .vin-content .details td:nth-child(2n+1) {
+      background: #fafafa;
+      text-align: right; }

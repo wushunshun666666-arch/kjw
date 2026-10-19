@@ -1,0 +1,313 @@
+.member-agent-page {
+    --agent-line-color: #d7e0ec;
+    --agent-primary: #0d6efd;
+    color: #1f2937;
+}
+
+.member-agent-stat-card,
+.member-agent-tree-card {
+    border: 1px solid #e1e7ef;
+    box-shadow: 0 0.25rem 1rem rgba(15, 23, 42, 0.04);
+}
+
+.member-agent-stat-icon {
+    align-items: center;
+    border-radius: 0.85rem;
+    display: inline-flex;
+    flex: 0 0 3rem;
+    font-size: 1.15rem;
+    height: 3rem;
+    justify-content: center;
+}
+
+.member-agent-stat-value {
+    color: #111827;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-top: 0.2rem;
+}
+
+.member-agent-tree-card > .card-header {
+    background: #fff;
+    min-height: 3.25rem;
+}
+
+.member-agent-tree-viewport {
+    background:
+        linear-gradient(rgba(248, 250, 252, 0.68), rgba(248, 250, 252, 0.68)),
+        radial-gradient(circle at 1px 1px, #dbe3ee 1px, transparent 0);
+    background-size: auto, 1.25rem 1.25rem;
+    max-height: calc(100vh - 18rem);
+    min-height: 28rem;
+    overflow: auto;
+    position: relative;
+}
+
+.member-agent-tree-canvas {
+    display: inline-block;
+    min-height: 28rem;
+    min-width: 100%;
+    padding: 2.25rem 2rem 3rem;
+    position: relative;
+}
+
+.member-agent-tree-lines {
+    height: 100%;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    z-index: 0;
+}
+
+.member-agent-tree-lines path {
+    fill: none;
+    stroke: var(--agent-line-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.member-agent-tree-forest,
+.member-agent-children {
+    align-items: flex-start;
+    display: flex;
+    justify-content: center;
+    width: max-content;
+}
+
+.member-agent-tree-forest {
+    gap: 4.5rem;
+    min-width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.member-agent-branch {
+    align-items: center;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    position: relative;
+}
+
+.member-agent-children {
+    gap: 1.15rem;
+    padding-top: 3.4rem;
+}
+
+.member-agent-node-card {
+    background: #fff;
+    border: 1px solid #dce3ec;
+    border-radius: 0.9rem;
+    box-shadow: 0 0.22rem 0.65rem rgba(15, 23, 42, 0.05);
+    color: #1f2937;
+    cursor: default;
+    flex: 0 0 auto;
+    padding: 0.8rem;
+    position: relative;
+    text-align: left;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    width: 12.5rem;
+}
+
+.member-agent-node-card.has-children {
+    cursor: pointer;
+}
+
+.member-agent-node-card.has-children:hover,
+.member-agent-node-card.has-children:focus-visible,
+.member-agent-node-card.is-expanded {
+    border-color: #8fbcff;
+    box-shadow: 0 0.35rem 1rem rgba(13, 110, 253, 0.13);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.member-agent-node-card.is-frozen {
+    border-color: #f1c2c7;
+}
+
+.member-agent-node-card::after {
+    background: #fff;
+    border: 2px solid var(--agent-primary);
+    border-radius: 50%;
+    bottom: -1.1rem;
+    content: '';
+    display: none;
+    height: 0.52rem;
+    left: 50%;
+    position: absolute;
+    transform: translateX(-50%);
+    width: 0.52rem;
+}
+
+.member-agent-node-card.is-expanded::after {
+    display: block;
+}
+
+.member-agent-node-head {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.member-agent-avatar {
+    align-items: center;
+    background: #111827;
+    border-radius: 50%;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 2.45rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    height: 2.45rem;
+    justify-content: center;
+    object-fit: cover;
+    overflow: hidden;
+    width: 2.45rem;
+}
+
+.member-agent-node-identity {
+    min-width: 0;
+}
+
+.member-agent-node-name {
+    color: #111827;
+    font-size: 0.94rem;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-agent-node-uid {
+    color: #7b8798;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-agent-toggle {
+    align-items: center;
+    background: #e8f1ff;
+    border-radius: 50%;
+    color: var(--agent-primary);
+    display: inline-flex;
+    flex: 0 0 1.25rem;
+    font-size: 0.68rem;
+    height: 1.25rem;
+    justify-content: center;
+    margin-left: auto;
+    transition: transform 0.18s ease;
+}
+
+.member-agent-node-card.is-expanded .member-agent-toggle {
+    transform: rotate(180deg);
+}
+
+.member-agent-node-metrics {
+    display: grid;
+    gap: 0.35rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 0.75rem;
+}
+
+.member-agent-node-metric {
+    background: #f7f9fc;
+    border: 1px solid #e7ebf0;
+    border-radius: 0.38rem;
+    min-width: 0;
+    padding: 0.35rem 0.2rem;
+    text-align: center;
+}
+
+.member-agent-node-metric-label {
+    color: #7b8798;
+    display: block;
+    font-size: 0.64rem;
+    line-height: 1.2;
+}
+
+.member-agent-node-metric-value {
+    color: #111827;
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-top: 0.12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-agent-node-footer {
+    align-items: center;
+    display: flex;
+    gap: 0.35rem;
+    justify-content: space-between;
+    margin-top: 0.6rem;
+    min-width: 0;
+}
+
+.member-agent-node-code {
+    color: #8a94a4;
+    font-size: 0.68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-agent-status {
+    border: 1px solid #9fe1c3;
+    border-radius: 999px;
+    color: #198754;
+    flex: 0 0 auto;
+    font-size: 0.66rem;
+    line-height: 1.25;
+    padding: 0.12rem 0.42rem;
+}
+
+.member-agent-status.is-frozen {
+    border-color: #f1aeb5;
+    color: #dc3545;
+}
+
+.member-agent-tree-state {
+    align-items: center;
+    color: #6c757d;
+    display: flex;
+    gap: 0.55rem;
+    inset: 0;
+    justify-content: center;
+    min-height: 28rem;
+    padding: 2rem;
+    position: absolute;
+}
+
+.member-agent-tree-state.is-error {
+    color: #dc3545;
+}
+
+.member-agent-tree-state.d-none {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .member-agent-tree-viewport,
+    .member-agent-tree-canvas,
+    .member-agent-tree-state {
+        min-height: 22rem;
+    }
+
+    .member-agent-tree-canvas {
+        padding: 1.5rem 1rem 2rem;
+    }
+}

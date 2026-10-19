@@ -1,0 +1,34 @@
+/* Project-level sizing only. Core appearance comes from the official
+   Selectize 0.15.2 Bootstrap 5 theme loaded immediately before this file. */
+.bootstrap5-combobox {
+  vertical-align: middle;
+}
+
+/* ComboBox is searchable text input; do not show select-style up/down arrows. */
+.bootstrap5-combobox.single .selectize-input,
+.bootstrap5-combobox.single .selectize-input.dropdown-active {
+  padding-right: .75rem;
+}
+
+.bootstrap5-combobox.single .selectize-input::after,
+.bootstrap5-combobox.single .selectize-input.dropdown-active::after {
+  display: none !important;
+  content: none !important;
+}
+
+.selectize-dropdown {
+  z-index: 1056;
+}
+
+.search-form .bootstrap5-combobox .selectize-input,
+.data-table-search-form .bootstrap5-combobox .selectize-input {
+  min-height: 34px;
+  padding-top: .3125rem;
+  padding-bottom: .3125rem;
+  font-size: 12px;
+}
+
+.search-form .bootstrap5-combobox .selectize-dropdown,
+.data-table-search-form .bootstrap5-combobox .selectize-dropdown {
+  font-size: 12px;
+}

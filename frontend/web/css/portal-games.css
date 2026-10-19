@@ -1,0 +1,26 @@
+.portal-game-nav{width:91%;margin:0 auto;padding:12px 0;display:flex;gap:8px;flex-wrap:wrap;font:14px Arial,"Microsoft YaHei",sans-serif}
+.portal-game-nav a{padding:9px 16px;border:1px solid #ddd;border-radius:4px;color:#444;background:#f7f7f7;text-decoration:none;white-space:nowrap}
+.portal-game-nav a.selected{background:#e63737;border-color:#e63737;color:white}
+.portal-game-nav a:hover{border-color:#e63737}
+.portal-game-nav a:focus-visible,.multi-portal button:focus-visible,.multi-portal select:focus-visible{outline:2px solid #e63737;outline-offset:3px}
+.multi-portal{width:91%;margin:0 auto 30px;color:#333;font:14px Arial,"Microsoft YaHei",sans-serif;line-height:1.6}
+.multi-portal button,.multi-portal select{font:inherit;cursor:pointer;border:1px solid #ddd;border-radius:3px;background:#fff;padding:5px 12px;color:#333}
+.multi-portal button:disabled{opacity:.6;cursor:wait}
+.multi-portal a{color:#e63737;text-decoration:none}
+.portal-top{height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.portal-top strong{font-size:18px;color:#e63737}
+.portal-top nav{display:flex;gap:18px}
+.portal-banner{position:relative}.portal-banner-img{width:100%;display:block}.portal-qr{position:absolute;width:34%;right:2%;top:6.6%}.portal-qr img{width:100%;display:block}
+.portal-entry{display:flex;justify-content:space-between;align-items:center;padding:10px 0}.portal-entry>a{font-weight:bold;font-size:18px}.portal-entry button{border:0;color:#999;font-size:13px}
+.portal-ad{display:block;margin-bottom:8px}.portal-ad img{width:100%;display:block}
+.portal-notice{padding:7px 12px;background:#fff7e7;color:#d78617;margin:6px 0;overflow-wrap:anywhere}
+.portal-current{padding:16px;border:1px solid #eee;margin:10px 0}.portal-current-heading{display:flex;align-items:center;justify-content:space-between}.portal-current h1{font-size:21px;font-weight:bold;margin:0;color:#e63737}.portal-current p{margin:8px 0}.portal-current-summary{font-weight:bold}.portal-state{font-size:12px;color:#888}
+.portal-balls{display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}.portal-current>.portal-balls{justify-content:flex-start;margin:12px 0}
+.portal-ball{display:inline-flex;justify-content:center;align-items:center;border-radius:50%;height:28px;width:28px;flex:0 0 28px;background:#e63737;color:#fff;font-weight:bold;font-size:15px}
+.portal-current .portal-ball{height:38px;width:38px;flex-basis:38px;font-size:20px}.racing-ball{border-radius:4px}.racing-1{background:#e7b900}.racing-2{background:#1686db}.racing-3{background:#444}.racing-4{background:#ef7124}.racing-5{background:#22a9b7}.racing-6{background:#6853d4}.racing-7{background:#9c9c9c}.racing-8{background:#e33f3f}.racing-9{background:#ad3d28}.racing-10{background:#36a154}
+.portal-tabs{display:flex;background:#f6f6f6;border-bottom:2px solid #e63737}.portal-tabs button{flex:1;border:0;border-radius:0;padding:12px;font-size:16px;background:transparent}.portal-tabs button[aria-selected=true]{background:#e63737;color:#fff}
+.portal-options{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 0}.portal-options select{padding:4px 8px}.portal-options>span{font-size:12px;color:#888;margin-left:auto}
+.portal-table-scroll{overflow-x:auto;max-width:100%;border:1px solid #eee}.portal-data-table{width:100%;border-collapse:collapse;text-align:center;font-size:14px}.portal-data-table th{background:#f5f5f5;font-weight:normal;padding:10px 8px;white-space:nowrap}.portal-data-table td{padding:9px 8px;border-top:1px solid #eee;border-right:1px solid #f0f0f0;white-space:nowrap}.portal-data-table tbody tr:nth-child(even){background:#fafafa}.portal-issue-cell{font-variant-numeric:tabular-nums}.portal-issue-cell small{display:block;font-size:11px;color:#999}.portal-trend-dot{color:#ccc}.portal-trend td{padding:8px 4px}.portal-statistics td:last-child{width:55%}.portal-frequency{display:inline-block;width:65%;height:8px;background:#eee;margin-left:12px;vertical-align:middle;border-radius:4px;overflow:hidden;text-align:left}.portal-frequency span{height:100%;display:block;background:#e63737}
+.portal-empty{text-align:center;color:#999;padding:42px 16px}.portal-rules{font-size:12px;color:#888;margin-top:12px}
+@media(max-width:600px){.portal-game-nav{width:100%;padding:8px;gap:6px;box-sizing:border-box}.portal-game-nav a{padding:6px 9px;font-size:12px}.multi-portal{width:100%;font-size:13px}.portal-top{padding:0 8px;height:38px}.portal-top strong{font-size:14px}.portal-top nav{gap:10px;font-size:12px}.portal-entry{padding:8px}.portal-entry>a{font-size:16px}.portal-notice{margin:4px 0}.portal-current{padding:12px;margin:6px 0}.portal-current h1{font-size:18px}.portal-current .portal-balls{gap:5px}.portal-current .portal-ball{width:28px;height:28px;flex-basis:28px;font-size:16px}.portal-tabs button{padding:9px;font-size:15px}.portal-options{padding:10px 8px;gap:8px}.portal-options select{font-size:12px}.portal-balls{gap:4px}.portal-ball{height:23px;width:23px;flex-basis:23px;font-size:13px}.portal-data-table{font-size:12px}.portal-data-table td,.portal-data-table th{padding:8px 6px}.portal-result{min-width:540px}.portal-trend{min-width:420px}.portal-rules{padding:0 8px}.portal-frequency{width:50%}}
+@media(prefers-reduced-motion:reduce){.multi-portal *{scroll-behavior:auto}}

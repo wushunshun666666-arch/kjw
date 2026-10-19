@@ -1,0 +1,19 @@
+{
+  "back": [
+    {
+      "class": "van-badge__wrapper van-icon van-icon-arrow-left",
+      "parent": "<div data-v-14d6d2a9=\"\" class=\"w-10 flex items-center\"><i data-v-14d6d2a9=\"\" class=\"van-badge__wrapper van-icon van-icon-arrow-left\" style=\"font-size: 22px;\"><!----><!----><!----></i></div>"
+    },
+    {
+      "class": "van-badge__wrapper van-icon van-icon-clock-o mr-1",
+      "parent": "<div data-v-14d6d2a9=\"\" class=\"flex items-center text-xs text-gray-400 mb-6 border-b border-gray-100 pb-4\"><i data-v-14d6d2a9=\"\" class=\"van-badge__wrapper van-icon van-icon-clock-o mr-1\"><!----><!----><!----></i><span data-v-14d6d2a9=\"\">2026-08-28 17:53:05</span><span data-v-14d6d2a9=\"\" class=\"ml-auto text-[#b21824]\">官方团队</span></div>"
+    }
+  ],
+  "images": [
+    {
+      "ok": true,
+      "src": "https://pc28p.com/storage/ad/20260828/c2ece87ff0e40cb0d6ad479891b2e291.png"
+    }
+  ],
+  "text": "公告详情\n新人首充\n2026-08-28 17:53:05\n官方团队"
+}
