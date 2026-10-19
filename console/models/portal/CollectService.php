@@ -21,6 +21,9 @@ final class CollectService extends \app\models\Service
     public function watch(CollectForm $form, callable $report): bool
     {
         if (!$form->validate()) { return $this->addErrors($form->getErrors()); }
+        if (\common\models\lottery\SharedDataConfig::current()->isClient()) {
+            return $this->setError('当前为共享数据分站，请停止此站采集任务；开奖由中心统一采集。');
+        }
         $failed = false;
         for ($round = 0; (int) $form->rounds === 0 || $round < (int) $form->rounds; $round++) {
             $service = new self();

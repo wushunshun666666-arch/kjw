@@ -33,12 +33,13 @@ patch('index-5ZnwG-jb.js',
 patch('index-5ZnwG-jb.js', 'const s=y(!0),a=D(()=>c.ad.length>0);return A(function(){c.init()})',
       'let portal;const s=y(!0),a=D(()=>c.ad.length>0);ie(()=>portal?.destroy());return A(function(){portal=mountPortal(c)})')
 patch('index-5ZnwG-jb.js', 'var T=',
-      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-7";var T=')
+      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-8";var T=')
 patch('index-5ZnwG-jb.js', 'ys={class:"flex flex-col pb-2"}',
       'ys={id:"portal-home",class:"flex flex-col pb-2"}')
 patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1})):w("",!0)',
       'e("nav",{class:"portal-game-nav","aria-label":"彩种切换",innerHTML:window.portalGameLinks||""}),'
       'e("p",{id:"portal-switch-status",role:"status",hidden:true}),'
+      'e("p",{id:"portal-shared-status",role:"status","aria-live":"polite",hidden:true}),'
       'e("div",{id:"portal-current-host",class:"multi-portal portal-game-embedded",hidden:r(c).selected_game==="jnd28",innerHTML:window.portalGameCurrent||""},null,8,["hidden"]),'
       'r(c).is_init&&r(c).selected_game==="jnd28"?(i(),G(Vt,{key:1})):w("",!0)')
 patch('index-5ZnwG-jb.js', 'S(us)])]),S(_,{to:"/notice"',
@@ -78,7 +79,7 @@ patch('website-BTB8_uk9.js', 'website:"",entry:""', 'website:window.portalWebsit
 patch('website-BTB8_uk9.js', 'open:function(e=!1){return h(this,null,function*(){',
       'open:function(e=!1){return h(this,null,function*(){if(o.pending||!o.portal_active||o.selected_game!=="jnd28")return;')
 patch('website-BTB8_uk9.js', 'const t=yield x({api:O.website_open,data:{id:o.lottery_id}});',
-      'o.pending=!0;let t;try{t=yield x({api:O.website_open,data:{id:o.lottery_id}})}finally{o.pending=!1;e&&de()}if(!o.portal_active||o.selected_game!=="jnd28")return;')
+      'o.pending=!0;let t;try{t=yield x({api:O.website_open,data:{id:o.lottery_id}})}catch{if(o.portal_active&&o.selected_game==="jnd28")o.portal_error?.("开奖数据暂时不可用，正在自动重试…");return;}finally{o.pending=!1;e&&de()}if(!o.portal_active||o.selected_game!=="jnd28")return;o.portal_error?.(t?.code===200?"":"开奖数据暂时不可用，正在自动重试…");')
 patch('website-BTB8_uk9.js', 'yield o.open(e),o.timer===!1&&',
       'yield o.open(e),o.portal_active&&o.selected_game==="jnd28"&&o.timer===!1&&')
 patch('website-BTB8_uk9.js', 'document.title=t.title',
@@ -92,7 +93,7 @@ for name in ['cover.png', 'open.png']:
     shutil.copy2(SOURCE / name, ROOT / 'web' / name)
 # Version the entire import graph, including Vite preloads and circular Vue imports.
 # Revalidating only the entry URL can leave stale chunks or mount two Vue runtimes.
-version = '20261019-7'
+version = '20261019-8'
 scripts = list(OUTPUT.glob('*.js'))
 for script in scripts:
     contents = script.read_text('utf-8')

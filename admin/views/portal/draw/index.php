@@ -1,12 +1,15 @@
 <?php
-/** 开奖记录查询。@var app\models\portal\draw\SearchForm $model @var array $gameNames @var array $sources */
+/** 开奖记录查询。@var app\models\portal\draw\SearchForm $model @var array $gameNames @var array $sources @var bool $isSharedClient */
 use app\widgets\DataTableActiveForm;
 use app\widgets\TabMenu;
 use app\helpers\Html;
 use yii\web\JsExpression;
 ?>
-<?= TabMenu::widget(['menus' => ['彩种管理' => ['/portal/game/index'], '开奖记录' => ['index'], '公告管理' => ['/portal/notice/index'], '录入开奖' => ['add']], 'active' => '开奖记录']) ?>
+<?= TabMenu::widget(['menus' => ['彩种管理' => ['/portal/game/index'], '开奖记录' => ['index'], '公告管理' => ['/portal/notice/index']] + ($isSharedClient ? [] : ['录入开奖' => ['add']]), 'active' => '开奖记录']) ?>
 <div class="card shadow-sm mb-3"><div class="card-header"><h1 class="card-title h6 mb-0">开奖记录</h1></div><div class="card-body">
+<?php if ($isSharedClient): ?>
+<p class="text-muted">本站为共享数据分站，最新开奖、历史记录和预测由采集中心统一提供，可在前台查询。本站不重复采集或保存中心开奖记录；广告、登录链接、公告及彩种显示配置仍由本站独立管理。</p>
+<?php else: ?>
 <p class="text-muted">采集入口读取开奖接口并写入数据库；前台的开奖结果、走势和统计均读取已入库记录。重复期号不会重复入库，同一期号的冲突结果会拒绝覆盖。</p>
 <details class="mb-3" open><summary>各彩种采集状态</summary>
 <div class="table-responsive"><table class="table table-bordered align-middle mt-2"><thead><tr><th>彩种</th><th>最新开奖</th><th>最近采集</th><th>最近成功</th><th>状态</th><th>操作</th></tr></thead><tbody>
@@ -20,4 +23,5 @@ use yii\web\JsExpression;
 <?= $form->queryButton() ?>
 <?php DataTableActiveForm::end(); ?>
 <?= $form->table(['head' => ['彩种' => [], '期号' => [], '开奖时间' => [], '号码' => [], '来源' => [], '接收时间' => []], 'url' => ['list'], 'load' => true]) ?>
+<?php endif; ?>
 </div></div>

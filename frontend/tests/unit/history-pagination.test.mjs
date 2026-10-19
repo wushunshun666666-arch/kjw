@@ -324,3 +324,27 @@ test('wrong game or changing snapshot responses cannot replace the displayed his
     assert.equal(f.pagination.pagination.snapshot, 1000);
     f.pagination.destroy();
 });
+
+test('live data recovery retries an initially failed history request without duplicate requests', async () => {
+    for (const issue of ['100', undefined]) {
+        const f = fixture();
+        const initial = f.pagination.selectGame('jnd28');
+        f.requests[0].reject(new Error('center unavailable'));
+        await initial;
+        assert.equal(f.pagination.hasData, false);
+        assert.notEqual(f.pagination.error, '');
+        f.pagination.observeLatest('az10', issue);
+        assert.equal(f.requests.length, 1);
+        const recovered = f.pagination.observeLatest('jnd28', issue);
+        f.pagination.observeLatest('jnd28', issue);
+        assert.equal(f.requests.length, 2);
+        assert.equal(f.params(1).snapshot, '0');
+        f.response(1);
+        await recovered;
+        assert.equal(f.pagination.hasData, true);
+        assert.equal(f.pagination.error, '');
+        assert.equal(f.rendered.length, 1);
+        assert.equal(f.requests.length, 2);
+        f.pagination.destroy();
+    }
+});

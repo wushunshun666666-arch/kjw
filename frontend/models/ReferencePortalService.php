@@ -8,6 +8,8 @@ use common\models\lottery\Notice;
 use common\models\lottery\Settings;
 use common\models\lottery\Prediction;
 use common\models\lottery\PredictionAlgorithm;
+use common\models\lottery\SharedDataConfig;
+use common\models\lottery\SharedDataGateway;
 use common\resource\PortalImageResource;
 use yii\helpers\Html;
 use yii\helpers\HtmlPurifier;
@@ -17,11 +19,15 @@ use yii\web\NotFoundHttpException;
 final class ReferencePortalService
 {
     private ReferenceGateway $gateway;
+    private SharedDataConfig $sharedConfig;
+    private ?SharedDataGateway $sharedGateway;
 
     /** 注入只读网关，便于验证期号匹配与降级行为。 */
-    public function __construct(?ReferenceGateway $gateway = null)
+    public function __construct(?ReferenceGateway $gateway = null, ?SharedDataConfig $sharedConfig = null, ?SharedDataGateway $sharedGateway = null)
     {
         $this->gateway = $gateway ?? new ReferenceGateway();
+        $this->sharedConfig = $sharedConfig ?? SharedDataConfig::current();
+        $this->sharedGateway = $sharedGateway;
     }
 
     /** 返回前端公开配置，不暴露服务端接入选项。 */
@@ -49,10 +55,27 @@ final class ReferencePortalService
             ? \yii\helpers\Url::to(['/reference/image', 'reference' => $reference]) : $reference;
     }
 
-    /** 只读取本站数据库中的开奖和已保存的本地预测，不访问预测接口或生成预测。 */
-    public function open(): array
+    /** 中心读取已保存的开奖和预测；分站读取共享数据，展示开关仍由本站控制。 */
+    public function open(bool $sharedExport = false): array
     {
-        $game = Game::findOne(['code' => 'jnd28', 'enabled' => Game::VISIBLE]);
+        $criteria = ['code' => 'jnd28'];
+        if (!$sharedExport) { $criteria['enabled'] = Game::VISIBLE; }
+        $game = Game::findOne($criteria);
+        if ($sharedExport && ($game === null || !\common\models\lottery\FeedCatalog::matches($game))) {
+            throw new NotFoundHttpException('彩种不存在或号码规则不匹配。');
+        }
+        if (!$sharedExport && $this->sharedConfig->isClient() && $game !== null) {
+            if (!\common\models\lottery\FeedCatalog::matches($game)) {
+                throw new NotFoundHttpException('彩种号码规则不匹配。');
+            }
+            $data = ($this->sharedGateway ?? new SharedDataGateway($this->sharedConfig))->fetch('latest', ['game' => 'jnd28']);
+            $now = time();
+            $nextTime = strtotime($data['period']['next_time_end'] . ' Asia/Shanghai');
+            $data['period']['open_time'] = max(0, $nextTime - $now);
+            $data['period']['time'] = date('Y-m-d H:i:s', $now);
+            $data['prediction_source'] = 'shared';
+            return $data;
+        }
         $draws = $game === null ? [] : Draw::find()->where(['game_id' => $game->id])
             ->orderBy(['draw_time' => SORT_DESC, 'id' => SORT_DESC])->limit(100)->all();
         $latestIssue = $draws[0]->issue ?? '';

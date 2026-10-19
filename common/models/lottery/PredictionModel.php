@@ -13,10 +13,14 @@ final class PredictionModel extends \common\models\LogicModel
      */
     public static function generateNext(int $gameId): Prediction|Error|null
     {
+        $config = SharedDataConfig::current();
+        if ($config->isClient()) {
+            return new Error('共享数据分站使用中心预测，不在本地生成预测。');
+        }
         $transaction = new Transaction();
         try {
             $game = Game::findBySql('SELECT * FROM portal_game WHERE id = :id FOR UPDATE', [':id' => $gameId])->one();
-            if ($game === null || $game->code !== 'jnd28' || (int) $game->enabled !== Game::VISIBLE
+            if ($game === null || $game->code !== 'jnd28' || (!$config->isCenter() && (int) $game->enabled !== Game::VISIBLE)
                 || (int) $game->ball_count !== 3 || (int) $game->ball_min !== 0 || (int) $game->ball_max !== 9) {
                 $transaction->commit(); return null;
             }

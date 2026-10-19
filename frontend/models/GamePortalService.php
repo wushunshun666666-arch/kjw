@@ -7,11 +7,23 @@ use common\models\lottery\Draw;
 use common\models\lottery\DrawSchedule;
 use common\models\lottery\FeedCatalog;
 use common\models\lottery\Game;
+use common\models\lottery\SharedDataConfig;
+use common\models\lottery\SharedDataGateway;
 use yii\web\NotFoundHttpException;
 
 /** 新增彩种公开查询，所有开奖只读取数据库，绝不在页面访问时采集。 */
 final class GamePortalService
 {
+    private SharedDataConfig $sharedConfig;
+    private ?SharedDataGateway $sharedGateway;
+
+    /** 注入部署模式和只读数据网关，分站不查询本地开奖表。 */
+    public function __construct(?SharedDataConfig $sharedConfig = null, ?SharedDataGateway $sharedGateway = null)
+    {
+        $this->sharedConfig = $sharedConfig ?? SharedDataConfig::current();
+        $this->sharedGateway = $sharedGateway;
+    }
+
     /** 返回已发布且已接入来源的彩种导航，顺序与后台一致。 */
     public function games(): array
     {
@@ -20,19 +32,30 @@ final class GamePortalService
     }
 
     /** 返回单一彩种最近100期与号码规则，不复用加拿大28的和值/预测规则。 */
-    public function open(string $code): array
+    public function open(string $code, bool $sharedExport = false): array
     {
-        $game = Game::findOne(['code' => $code, 'enabled' => Game::VISIBLE]);
+        $criteria = ['code' => $code];
+        if (!$sharedExport) { $criteria['enabled'] = Game::VISIBLE; }
+        $game = Game::findOne($criteria);
         if ($game === null || !FeedCatalog::matches($game)) { throw new NotFoundHttpException('彩种不存在或尚未发布。'); }
         $definition = FeedCatalog::get($code);
         $racing = $definition['type'] === 'racing';
         $positions = $racing ? array_map(static fn (int $rank): string => '第' . $rank . '名', range(1, 10))
             : ($definition['count'] === 5 ? ['万位', '千位', '百位', '十位', '个位'] : ['第一位', '第二位', '第三位']);
-        $draws = Draw::find()->select(['issue', 'numbers', 'draw_time'])->where(['game_id' => $game->id])
-            ->orderBy(['draw_time' => SORT_DESC, 'id' => SORT_DESC])->limit(100)->all();
-        $rows = $this->formatDraws($draws, $code);
-        $state = CollectionState::findOne((int) $game->id);
-        return [
+        $shared = !$sharedExport && $this->sharedConfig->isClient();
+        if ($shared) {
+            $data = ($this->sharedGateway ?? new SharedDataGateway($this->sharedConfig))->fetch('latest', ['game' => $code]);
+            $rows = $data['list'];
+            $collection = $data['collection'];
+        } else {
+            $draws = Draw::find()->select(['issue', 'numbers', 'draw_time'])->where(['game_id' => $game->id])
+                ->orderBy(['draw_time' => SORT_DESC, 'id' => SORT_DESC])->limit(100)->all();
+            $rows = $this->formatDraws($draws, $code);
+            $state = CollectionState::findOne((int) $game->id);
+            $collection = ['attempt_time' => $state?->attempt_time, 'success_time' => $state?->success_time,
+                'unavailable' => $state !== null && $state->error !== ''];
+        }
+        $result = [
             'game' => ['code' => $code, 'name' => $game->name, 'type' => $definition['type'],
                 'positions' => $positions, 'range' => $game->getNumberRange(), 'sum_label' => $racing ? '冠亚和' : '总和',
                 'analysis' => $this->analysisOptions($game, $positions, $racing),
@@ -40,9 +63,10 @@ final class GamePortalService
                     : ($definition['count'] === 5 ? '按万、千、百、十、个位排列；总和23–45为大，0–22为小。' : '三位号码之和14–27为大，0–13为小。')],
             'list' => $rows,
             'period' => DrawSchedule::estimate(array_column($rows, 'time')),
-            'collection' => ['attempt_time' => $state?->attempt_time, 'success_time' => $state?->success_time,
-                'unavailable' => $state !== null && $state->error !== ''],
+            'collection' => $collection,
         ];
+        if ($shared) { $result['shared_data'] = $data['shared_data']; }
+        return $result;
     }
 
     /**

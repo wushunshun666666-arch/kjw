@@ -30,6 +30,7 @@ phpunit.phar
 
 # machine-specific development credentials
 /common/config/main-local.php
+/common/config/lottery-data-local.php
 /console/config/main-local.php
 /api/config/main-local.php
 /api/runtime/

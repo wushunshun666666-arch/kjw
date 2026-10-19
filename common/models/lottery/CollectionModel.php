@@ -23,13 +23,17 @@ final class CollectionModel extends \common\models\LogicModel
     public function collect(string $code = 'jnd28'): array|false
     {
         $this->clearErrors();
-        if (FeedCatalog::get($code) === null) { return $this->setError('未配置该彩种的采集地址。'); }
+        if (SharedDataConfig::current()->isClient()) {
+            $this->setError('当前为共享数据分站，采集由中心统一运行。');
+            return false;
+        }
+        if (FeedCatalog::get($code) === null) { $this->setError('未配置该彩种的采集地址。'); return false; }
         $mutex = new \yii\mutex\FileMutex(['mutexPath' => '@common/runtime/portal-collection-locks']);
         $lock = 'portal-collect-' . $code;
-        if (!$mutex->acquire($lock, 0)) { return $this->setError('该彩种已有采集任务运行，本次跳过。'); }
+        if (!$mutex->acquire($lock, 0)) { $this->setError('该彩种已有采集任务运行，本次跳过。'); return false; }
         try {
             $game = Game::findOne(['code' => $code]);
-            if ($game === null) { return $this->setError('请先执行彩种数据库迁移。'); }
+            if ($game === null) { $this->setError('请先执行彩种数据库迁移。'); return false; }
             if (!FeedCatalog::matches($game)) { return $this->fail($game, '彩种配置与采集源号码规则不一致。'); }
             $rows = $this->gateway->fetch((int) $game->id, $code);
             if (Error::isError($rows)) { return $this->fail($game, (string) $rows->getError()); }
@@ -67,7 +71,8 @@ final class CollectionModel extends \common\models\LogicModel
     private function fail(Game $game, string $message, int $received = 0, int $inserted = 0): false
     {
         $this->recordState($game, $message, $received, $inserted);
-        return $this->setError($message);
+        $this->setError($message);
+        return false;
     }
 
     /** 在独立短事务中保存本彩种状态快照，调用方持有共享采集锁。 */

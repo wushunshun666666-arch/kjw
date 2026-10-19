@@ -47,7 +47,9 @@ export class HistoryPagination {
 
     /** Live draws update only the latest history page, coalescing slow requests. */
     observeLatest(code, issue) {
-        if (this.destroyed || code !== this.currentGame || issue === null || issue === undefined || issue === '') return;
+        if (this.destroyed || code !== this.currentGame) return;
+        if (!this.hasData && this.error && !this.request) return this.load(1, this.pagination.page_size, 0);
+        if (issue === null || issue === undefined || issue === '') return;
         const nextIssue = String(issue);
         if (this.latestIssue === nextIssue) return;
         const firstObservation = this.latestIssue === null;

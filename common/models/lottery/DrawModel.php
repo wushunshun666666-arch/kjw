@@ -12,6 +12,9 @@ final class DrawModel extends LogicModel
     /** 接收标准数据；相同记录重试成功，冲突结果返回错误。 */
     public static function receive(DrawInput $input): Draw|Error
     {
+        if (SharedDataConfig::current()->isClient()) {
+            return new Error('共享数据分站不能录入开奖，请在采集中心管理开奖记录。');
+        }
         if (!$input->validate()) {
             return new Error($input->getErrors());
         }

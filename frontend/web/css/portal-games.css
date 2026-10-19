@@ -40,6 +40,7 @@
 
 .portal-game-embedded{width:100%;margin:0}.portal-game-embedded[hidden]{display:none}
 #portal-switch-status{margin:0;padding:6px 12px;color:#b21824;font-size:13px}#portal-switch-status[hidden]{display:none}
+#portal-shared-status{margin:0;padding:6px 12px;color:#b21824;font-size:13px}#portal-shared-status[hidden]{display:none}
 .portal-game-nav a[aria-busy=true]{opacity:.65;cursor:progress}
 .portal-pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;padding:18px 8px;font:14px/1.6 Arial,"Microsoft YaHei",sans-serif;color:#555}
 .portal-pagination button,.portal-pagination select{padding:6px 12px;background:#fff;border:1px solid #ddd;border-radius:3px;font:inherit;color:#333;cursor:pointer}

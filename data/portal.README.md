@@ -1,5 +1,7 @@
 # 开奖门户数据库安装
 
+多个客户网站共用一次采集时，按 [中心与分站部署说明](portal.shared-data.README.md) 配置。共享功能沿用现有表结构，不新增数据库迁移；各站的广告、登录链接与后台账号仍保存在各自数据库。
+
 `portal.schema.mysql.sql` 是截至 `m261019_000002_add_portal_comments` 的结构快照，包含全部 7 张 `portal_*` 表、66 个字段的中文注释及主键、唯一键、查询索引和外键。使用 InnoDB、utf8mb4 和本目录通用的 `utf8mb4_unicode_ci` 排序规则，不携带本机自增序号。
 
 `portal.data.mysql.sql` 初始化 7 个彩种、站点默认配置、开奖门户菜单及 23 个权限路由，并记录对应的 6 条 Yii 迁移。默认外观来自 `frontend/config/portal.php` 的仓库默认值；SQL 不读取部署环境变量。导入后在后台配置自己的站点、登录地址和广告。

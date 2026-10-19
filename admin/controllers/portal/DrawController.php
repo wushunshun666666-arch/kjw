@@ -32,7 +32,8 @@ final class DrawController extends \app\controllers\Controller
     public function actionIndex()
     {
         $service = new DrawService();
-        return $this->render('index', ['model' => new SearchForm(), 'gameNames' => $service->getGameNames(), 'sources' => $service->getCollectionSources()]);
+        return $this->render('index', ['model' => new SearchForm(), 'gameNames' => $service->getGameNames(),
+            'sources' => $service->getCollectionSources(), 'isSharedClient' => $service->isSharedClient()]);
     }
 
     /** 返回不可变开奖记录的表格行。 */
@@ -46,6 +47,7 @@ final class DrawController extends \app\controllers\Controller
     /** 校验标准开奖数据。 */
     public function actionCheckAdd()
     {
+        (new DrawService())->requireLocalManagement();
         $form = new DrawInput();
         $form->loadPost();
         return $this->renderValidate($form);
@@ -56,6 +58,7 @@ final class DrawController extends \app\controllers\Controller
     {
         $form = new DrawInput(['source' => '人工核实']);
         $service = new DrawService();
+        $service->requireLocalManagement();
         if ($form->loadPost()) {
             if (!$form->validate()) { return $this->jsonError($form->getError()); }
             if (!$service->receive($form)) { return $this->jsonError($service->getError()); }

@@ -22,7 +22,20 @@ final class PortalService
         if (!$this->isInstalled()) { return ['installed' => false, 'games' => [], 'notices' => []]; }
         $cards = [];
         $games = Game::find()->where(['enabled' => Game::VISIBLE])->orderBy(['sort_order' => SORT_ASC, 'id' => SORT_ASC])->all();
+        $shared = \common\models\lottery\SharedDataConfig::current()->isClient();
         foreach ($games as $game) {
+            if ($shared) {
+                if (\common\models\lottery\FeedCatalog::get($game->code) === null) { continue; }
+                $data = $game->code === 'jnd28' ? (new ReferencePortalService())->open()
+                    : (new GamePortalService())->open($game->code);
+                $latest = $data['list'][0] ?? null;
+                $cards[] = ['code' => $game->code, 'name' => $game->name, 'description' => $game->description,
+                    'draw' => $latest === null ? null : ['issue' => $latest['issue'] ?? $latest['period'],
+                        'time' => $latest['time'] ?? $latest['created'], 'balls' => $latest['balls'] ?? $latest['code_arr'],
+                        'total' => array_sum($latest['balls'] ?? $latest['code_arr']), 'source' => '共享采集中心'],
+                    'shared_data' => $data['shared_data']];
+                continue;
+            }
             $draw = Draw::find()->where(['game_id' => $game->id])->orderBy(['draw_time' => SORT_DESC, 'id' => SORT_DESC])->one();
             $cards[] = ['code' => $game->code, 'name' => $game->name, 'description' => $game->description,
                 'draw' => $draw === null ? null : $this->drawData($draw)];
@@ -63,7 +76,7 @@ final class PortalService
     public function notice(int $id): array
     {
         $notice = Notice::find()->where(['id' => $id, 'enabled' => Notice::VISIBLE])->asArray()->one();
-        if ($notice === false || $notice === null) { throw new NotFoundHttpException('公告不存在。'); }
+        if ($notice === null) { throw new NotFoundHttpException('公告不存在。'); }
         return $notice;
     }
 

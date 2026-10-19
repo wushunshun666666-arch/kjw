@@ -12,6 +12,20 @@ use yii\data\ActiveDataProvider;
 /** 管理端开奖记录查询与标准接收用例。 */
 final class DrawService extends \app\models\Service
 {
+    /** 分站只管理本站外观，开奖接收由中心负责。 */
+    public function isSharedClient(): bool
+    {
+        return \common\models\lottery\SharedDataConfig::current()->isClient();
+    }
+
+    /** 阻止分站进入人工录入和本地历史管理入口。 */
+    public function requireLocalManagement(): void
+    {
+        if ($this->isSharedClient()) {
+            throw new \yii\web\ForbiddenHttpException('本站使用共享开奖数据，请在采集中心管理开奖记录。');
+        }
+    }
+
     /** 执行一次来源采集并返回统计。 */
     public function collect(string $code = 'jnd28'): array|false
     {
@@ -23,6 +37,7 @@ final class DrawService extends \app\models\Service
     /** 为采集面板准备来源、状态与最新开奖时间，不依赖前台访问触发采集。 */
     public function getCollectionSources(): array
     {
+        if ($this->isSharedClient()) { return []; }
         $games = Game::find()->where(['code' => array_keys(\common\models\lottery\FeedCatalog::GAMES)])->orderBy(['sort_order' => SORT_ASC])->all();
         $states = \common\models\lottery\CollectionState::find()->indexBy('game_id')->all();
         $latest = Draw::find()->select(['game_id', 'latest' => new \yii\db\Expression('MAX(draw_time)')])->groupBy('game_id')->asArray()->indexBy('game_id')->all();
@@ -41,6 +56,7 @@ final class DrawService extends \app\models\Service
      */
     public function search(SearchForm $form)
     {
+        $this->requireLocalManagement();
         $query = Draw::find()->with('game');
         $query->andFilterWhere(['game_id' => $form->game_id]);
         $query->andFilterWhere(['issue' => $form->issue]);
