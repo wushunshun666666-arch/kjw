@@ -81,4 +81,13 @@ patch('index-Dd6rjNuL.js',
       '(o(e).ad_wx||o(e).ad_ww)?(r(),t("a",{key:0,href:o(e).ad_wx||o(e).ad_ww,target:"_blank",rel:"noopener noreferrer"},[t("img",{class:"w-[100%]",src:o(e).ad_icon||o(e).icon,alt:"wx"},null,8,i)],8,["href"]))')
 for name in ['cover.png', 'open.png']:
     shutil.copy2(SOURCE / name, ROOT / 'web' / name)
+# Version the entire import graph, including Vite preloads and circular Vue imports.
+# Revalidating only the entry URL can leave stale chunks or mount two Vue runtimes.
+version = '20261019-6'
+scripts = list(OUTPUT.glob('*.js'))
+for script in scripts:
+    contents = script.read_text('utf-8')
+    for dependency in scripts:
+        contents = contents.replace(dependency.name + '"', dependency.name + '?v=' + version + '"')
+    script.write_text(contents, 'utf-8')
 print('Built reference UI with verified source checksums.')
