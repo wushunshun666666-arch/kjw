@@ -28,10 +28,8 @@ final class SiteController extends \yii\web\Controller
         $this->view->params['portalAppearance'] = (new \frontend\models\ReferencePortalService())->website();
         $this->view->params['portalGames'] = $service->games();
         $this->view->params['portalGame'] = $form->game;
-        if ($form->game === 'jnd28') { return $this->render('index'); }
-        $data = $service->open($form->game);
-        $this->view->params['multiGame'] = true;
-        return $this->render('game', ['data' => $data, 'appearance' => $this->view->params['portalAppearance']]);
+        $this->view->params['portalGameData'] = $form->game === 'jnd28' ? null : $service->open($form->game);
+        return $this->render('index');
     }
 
     /** 返回已入库的公开最新结果，不在访问页面时触发上游采集。 */

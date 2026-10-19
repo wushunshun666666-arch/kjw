@@ -31,7 +31,9 @@ class LatestDrawPanel {
             if (!racing && index > 0) numbers.push(element('span', '+', 'portal-current-symbol'));
             numbers.push(element('span', racing ? String(value).padStart(2, '0') : value, 'portal-current-number'));
         });
-        this.root.querySelector('[data-region="balls"]').replaceChildren(...numbers);
+        const balls = this.root.querySelector('[data-region="balls"]');
+        balls.classList.toggle('portal-current-racing', racing);
+        balls.replaceChildren(...numbers);
         const summary = this.root.querySelector('[data-region="summary"]');
         summary.setAttribute('aria-label', latest ? `${data.game.sum_label} ${latest.sum} ${latest.size} ${latest.parity}` : data.game.sum_label);
         summary.replaceChildren(...(latest ? [
@@ -58,12 +60,14 @@ class DrawHistoryPanel {
         this.tab = 'result';
         this.measureKey = 'sum';
         this.limit = 100;
+        this.listeners = new AbortController();
         this.init();
     }
 
     init() {
+        const options = {signal: this.listeners.signal};
         this.root.querySelectorAll('[data-tab]').forEach(button => {
-            button.addEventListener('click', () => this.selectTab(button.dataset.tab));
+            button.addEventListener('click', () => this.selectTab(button.dataset.tab), options);
             button.addEventListener('keydown', event => {
                 const tabs = ['result', 'trend', 'statistics'];
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -72,15 +76,17 @@ class DrawHistoryPanel {
                     : (tabs.indexOf(this.tab) + (event.key === 'ArrowRight' ? 1 : 2)) % 3;
                 this.selectTab(tabs[next]);
                 this.root.querySelector(`[data-tab="${tabs[next]}"]`).focus();
-            });
+            }, options);
         });
-        this.root.querySelectorAll('[data-analysis]').forEach(button => {
-            button.addEventListener('click', () => this.selectAnalysis(button.dataset.analysis));
-        });
+        this.root.querySelector('[data-region="analysis-control"]').addEventListener('click', event => {
+            const button = event.target.closest('[data-analysis]');
+            if (button) this.selectAnalysis(button.dataset.analysis);
+        }, options);
         this.root.querySelector('[data-field="limit"]').addEventListener('change', event => {
             this.limit = Number(event.target.value);
             this.render();
-        });
+        }, options);
+        this.buildAnalysis();
         this.selectTab('result');
     }
 
@@ -97,9 +103,26 @@ class DrawHistoryPanel {
     }
 
     update(data) {
+        const changed = this.data.game.code !== data.game.code;
         this.data = data;
+        if (changed) this.buildAnalysis();
         this.render();
     }
+
+    buildAnalysis() {
+        if (!this.data.game.analysis.some(option => option.key === this.measureKey)) this.measureKey = 'sum';
+        const controls = this.root.querySelector('[data-region="analysis-control"]');
+        controls.replaceChildren(element('span', '分析项目', 'portal-analysis-label'), ...this.data.game.analysis.map(option => {
+            const button = element('button', option.label);
+            button.type = 'button';
+            button.dataset.analysis = option.key;
+            button.setAttribute('aria-controls', 'portal-game-panel');
+            button.setAttribute('aria-pressed', String(option.key === this.measureKey));
+            return button;
+        }));
+    }
+
+    destroy() { this.listeners.abort(); }
 
     selectAnalysis(key) {
         this.measureKey = key;
@@ -182,79 +205,32 @@ class DrawHistoryPanel {
     }
 }
 
-/** Advertisement controls only manage their own region. */
-class AdvertisementPanel {
-    constructor(root) {
-        const button = root.querySelector('[data-action="ads"]');
-        const ads = root.querySelector('[data-region="ads"]');
-        button.addEventListener('click', () => {
-            ads.hidden = !ads.hidden;
-            button.textContent = ads.hidden ? '展开广告' : '收起广告';
-            button.setAttribute('aria-expanded', String(!ads.hidden));
-        });
+/** A single mounted draw widget; navigation owns fetching and polling. */
+export class GamePortal {
+    constructor(currentRoot, historyRoot, data, onExpire) {
+        this.currentRoot = currentRoot;
+        this.historyRoot = historyRoot;
+        this.latest = new LatestDrawPanel(currentRoot.querySelector('.portal-current'));
+        this.history = new DrawHistoryPanel(historyRoot, data);
+        this.scratch = new ScratchCardPanel(currentRoot.querySelector('[data-action="scratch"]'), historyRoot.querySelector('#portal-scratch-dialog'), ball);
+        this.countdown = new CountdownPanel(currentRoot.querySelector('[data-block="countdown"]'),
+            text => this.scratch.setCountdown(text), onExpire);
+        this.update(data);
     }
-}
 
-/** Poll only the local read endpoint, with overlap prevention and teardown. */
-class GamePortal {
-    constructor(root, data, url) {
+    update(data) {
         this.data = data;
-        this.url = url;
-        this.latest = new LatestDrawPanel(root.querySelector('.portal-current'));
-        this.history = new DrawHistoryPanel(root, data);
-        this.advertisement = new AdvertisementPanel(root);
-        this.pending = false;
-        this.destroyed = false;
-        this.listeners = new AbortController();
-        this.scratch = new ScratchCardPanel(root.querySelector('[data-action="scratch"]'), root.querySelector('#portal-scratch-dialog'), ball);
-        this.countdown = new CountdownPanel(root.querySelector('[data-block="countdown"]'),
-            text => this.scratch.setCountdown(text), () => this.refresh());
-        this.init();
-    }
-
-    init() {
-        this.latest.render(this.data);
-        this.scratch.update(this.data);
-        this.countdown.update(this.data.period);
-        this.timer = setInterval(() => { if (!document.hidden) this.refresh(); }, 5000);
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refresh(); }, {signal: this.listeners.signal});
-        window.addEventListener('pagehide', () => this.destroy(), {once: true});
-        window.addEventListener('pageshow', event => { if (event.persisted) window.location.reload(); });
-    }
-
-    async refresh() {
-        if (this.pending || this.destroyed) return;
-        this.pending = true;
-        this.request = new AbortController();
-        const timeout = setTimeout(() => this.request.abort(), 12000);
-        try {
-            const response = await fetch(this.url, {signal: this.request.signal, cache: 'no-store', credentials: 'same-origin'});
-            if (!response.ok) throw new Error('Request failed');
-            const payload = await response.json();
-            if (this.destroyed) return;
-            if (payload.code !== 200 || payload.data.game.code !== this.data.game.code || !Array.isArray(payload.data.list)) throw new Error('Unexpected game data');
-            this.data = payload.data;
-            this.latest.render(this.data);
-            this.history.update(this.data);
-            this.scratch.update(this.data);
-            this.countdown.update(this.data.period);
-        } catch {
-            if (!this.destroyed) this.latest.render(this.data, true);
-        } finally {
-            clearTimeout(timeout);
-            this.pending = false;
-        }
+        this.latest.render(data);
+        this.history.update(data);
+        this.historyRoot.querySelector('#portal-scratch-title').textContent = `${data.game.name}咪牌`;
+        this.historyRoot.querySelector('.portal-rules').textContent = `${data.game.rule}走势与统计使用本站已采集的实际记录。`;
+        this.scratch.update(data);
+        this.countdown.update(data.period);
     }
 
     destroy() {
-        this.destroyed = true;
-        clearInterval(this.timer);
-        this.request?.abort();
-        this.listeners.abort();
+        this.history.destroy();
         this.countdown.destroy();
         this.scratch.destroy();
     }
 }
-
-const root = document.getElementById('multi-portal');
-if (root) new GamePortal(root, window.portalGameData, window.portalGameUrl);

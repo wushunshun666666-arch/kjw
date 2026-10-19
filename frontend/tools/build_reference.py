@@ -29,10 +29,21 @@ patch('index-DKj2nBsJ.js',
       'url:window.portalApiRoutes[r.api],method:"GET",params:r.data,headers:r.headers')
 patch('index-5ZnwG-jb.js',
       '`${r(ue).config.apiBaseURL}/index/website/qrcode`', 'window.portalQrcode')
-# Keep the game selector outside the collapsible ads, immediately before results.
-# Links are server-rendered with Html::encode / Url::to and JSON-escaped in the shell.
-patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1}))',
-      'e("nav",{class:"portal-game-nav","aria-label":"彩种切换",innerHTML:window.portalGameLinks||""}),r(c).is_init?(i(),G(Vt,{key:1}))')
+# Keep the Vue homepage and its advertisements mounted while only draw panels switch.
+patch('index-5ZnwG-jb.js', 'const s=y(!0),a=D(()=>c.ad.length>0);return A(function(){c.init()})',
+      'let portal;const s=y(!0),a=D(()=>c.ad.length>0);ie(()=>portal?.destroy());return A(function(){portal=mountPortal(c)})')
+patch('index-5ZnwG-jb.js', 'var T=',
+      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-6";var T=')
+patch('index-5ZnwG-jb.js', 'ys={class:"flex flex-col pb-2"}',
+      'ys={id:"portal-home",class:"flex flex-col pb-2"}')
+patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1})):w("",!0)',
+      'e("nav",{class:"portal-game-nav","aria-label":"彩种切换",innerHTML:window.portalGameLinks||""}),'
+      'e("p",{id:"portal-switch-status",role:"status",hidden:true}),'
+      'e("div",{id:"portal-current-host",class:"multi-portal portal-game-embedded",hidden:r(c).selected_game==="jnd28",innerHTML:window.portalGameCurrent||""},null,8,["hidden"]),'
+      'r(c).is_init&&r(c).selected_game==="jnd28"?(i(),G(Vt,{key:1})):w("",!0)')
+patch('index-5ZnwG-jb.js', 'S(us)])]),S(_,{to:"/notice"',
+      'e("div",{id:"portal-history-host",class:"multi-portal portal-game-embedded",hidden:r(c).selected_game==="jnd28",innerHTML:window.portalGameHistory||""},null,8,["hidden"]),'
+      'r(c).selected_game==="jnd28"?S(us):w("",!0)])]),S(_,{to:"/notice"')
 patch('index-5ZnwG-jb.js', 'filter:{type:"result"}',
       'filter:{type:["result","trend","statistics","prediction"].includes(new URLSearchParams(location.hash.split("?")[1]||"").get("tab"))?new URLSearchParams(location.hash.split("?")[1]||"").get("tab"):"result"}')
 # Preserve compiled Vue block structure; only change text bindings and their flags.
@@ -53,12 +64,16 @@ patch('website-BTB8_uk9.js',
       'period:{cperiod:"-",open_time:0,period:"-",time:""}')
 patch('website-BTB8_uk9.js', 'const f=s[0];f&&(o.current=',
       'const f=s[0]||{code_arr:[],sum:"",dx:"",ds:""};f&&(o.current=')
-patch('website-BTB8_uk9.js', 'lottery_id:1,timer:!1', 'lottery_id:1,timer:!1,pending:!1')
+patch('website-BTB8_uk9.js', 'lottery_id:1,timer:!1', 'lottery_id:1,timer:!1,pending:!1,portal_active:!1,selected_game:window.portalInitialGame||"jnd28"')
 patch('website-BTB8_uk9.js', 'website:"",entry:""', 'website:window.portalWebsite||"",entry:""')
 patch('website-BTB8_uk9.js', 'open:function(e=!1){return h(this,null,function*(){',
-      'open:function(e=!1){return h(this,null,function*(){if(o.pending)return;')
+      'open:function(e=!1){return h(this,null,function*(){if(o.pending||!o.portal_active||o.selected_game!=="jnd28")return;')
 patch('website-BTB8_uk9.js', 'const t=yield x({api:O.website_open,data:{id:o.lottery_id}});',
-      'o.pending=!0;const t=yield x({api:O.website_open,data:{id:o.lottery_id}});o.pending=!1;')
+      'o.pending=!0;let t;try{t=yield x({api:O.website_open,data:{id:o.lottery_id}})}finally{o.pending=!1;e&&de()}if(!o.portal_active||o.selected_game!=="jnd28")return;')
+patch('website-BTB8_uk9.js', 'yield o.open(e),o.timer===!1&&',
+      'yield o.open(e),o.portal_active&&o.selected_game==="jnd28"&&o.timer===!1&&')
+patch('website-BTB8_uk9.js', 'document.title=t.title',
+      'void 0')
 # The reference contact page incorrectly uses a website URL as an image source.
 # Keep its full-width image layout, bind the uploaded contact icon and real link.
 patch('index-Dd6rjNuL.js',

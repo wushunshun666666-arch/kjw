@@ -4,17 +4,20 @@ use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use frontend\assets\PortalAsset;
-if ($this->params['multiGame'] ?? false) { \frontend\assets\GamePortalAsset::register($this); }
-else { PortalAsset::register($this); }
+PortalAsset::register($this);
 $appearance = $this->params['portalAppearance'] ?? ['website' => '', 'title' => '官方授权开奖网'];
 $routes = [];
 foreach (['index/website' => 'website', 'index/website/open' => 'open', 'index/notice/list' => 'notices', 'index/notice/detail' => 'detail'] as $source => $action) {
     $routes[$source] = Url::to(['reference/' . $action]);
 }
 $this->registerJs('window.appData = {api:"", source:""}; window.portalWebsite = ' . Json::htmlEncode($appearance['website']) . '; window.portalApiRoutes = ' . Json::htmlEncode($routes) . '; window.portalQrcode = ' . Json::htmlEncode(Url::to(['reference/qrcode'])) . ';', \yii\web\View::POS_HEAD);
-if (!($this->params['multiGame'] ?? false)) {
-    $this->registerJs('window.portalGameLinks = ' . Json::htmlEncode($this->render('/site/_game_links')) . ';', \yii\web\View::POS_HEAD);
-}
+$this->registerJs('window.portalGameLinks = ' . Json::htmlEncode($this->render('/site/_game_links'))
+    . '; window.portalGameCurrent = ' . Json::htmlEncode($this->render('/site/_game_current'))
+    . '; window.portalGameHistory = ' . Json::htmlEncode($this->render('/site/_game_history'))
+    . '; window.portalInitialGame = ' . Json::htmlEncode($this->params['portalGame'] ?? 'jnd28')
+    . '; window.portalInitialData = ' . Json::htmlEncode($this->params['portalGameData'] ?? null)
+    . '; window.portalGameEndpoint = ' . Json::htmlEncode(Url::to(['reference/game']))
+    . '; window.portalTitle = ' . Json::htmlEncode($appearance['title']) . ';', \yii\web\View::POS_HEAD);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html><html lang="zh"><head>

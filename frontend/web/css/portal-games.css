@@ -37,3 +37,7 @@
 @media(min-width:1024px) and (max-width:1199px){.portal-current .portal-current-numbers:not(.portal-current-racing){gap:6px}}
 @media(max-width:600px){.portal-current{padding:0 12px;margin:0}.portal-current .portal-current-numbers{gap:6px}.portal-current .portal-current-racing{gap:8px}}
 @media(max-width:360px){.portal-current .portal-current-numbers:not(.portal-current-racing){gap:4px}}
+
+.portal-game-embedded{width:100%;margin:0}.portal-game-embedded[hidden]{display:none}
+#portal-switch-status{margin:0;padding:6px 12px;color:#b21824;font-size:13px}#portal-switch-status[hidden]{display:none}
+.portal-game-nav a[aria-busy=true]{opacity:.65;cursor:progress}

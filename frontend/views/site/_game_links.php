@@ -3,5 +3,5 @@
 use yii\helpers\Html;
 ?>
 <?php foreach ($this->params['portalGames'] ?? [] as $game): ?>
-<?= Html::a(Html::encode($game['name']), ['site/index', 'game' => $game['code'], '#' => '/'], ['class' => ($this->params['portalGame'] ?? 'jnd28') === $game['code'] ? 'selected' : '', 'aria-current' => ($this->params['portalGame'] ?? 'jnd28') === $game['code'] ? 'page' : null]) ?>
+<?= Html::a(Html::encode($game['name']), ['site/index', 'game' => $game['code'], '#' => '/'], ['data-game' => $game['code'], 'class' => ($this->params['portalGame'] ?? 'jnd28') === $game['code'] ? 'selected' : '', 'aria-current' => ($this->params['portalGame'] ?? 'jnd28') === $game['code'] ? 'page' : null]) ?>
 <?php endforeach; ?>
