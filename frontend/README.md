@@ -71,7 +71,7 @@
 
 ## 安装与本地启动
 
-数据库沿用 `common/config/main-<YII_ENV>.php` 的当前实例配置。默认环境 `dev`，生产通过环境变量 `YII_ENV=prod` 指定。先在目标环境核对数据库再执行迁移：
+数据库沿用 `common/config/main-<环境>.php` 的当前实例配置。前台通过环境变量 `YII_ENV` 选择环境，默认 `dev`；当前控制台根据 PHP 的 `is_prod_mode` / `is_test_mode` 扩展选择环境，否则使用 `dev`，仅设置环境变量不会切换控制台。先在目标环境核对有效数据库配置再执行迁移：
 
 ```powershell
 php -d opcache.enable=0 -d opcache.enable_cli=0 console/index.php migrate/up --interactive=0
@@ -91,6 +91,8 @@ php -d opcache.enable=0 -d opcache.enable_cli=0 -S 127.0.0.1:8099 -t admin/web
 
 ## 数据结构与安全边界
 
+`data` 目录提供完整 SQL 安装文件：[7张表结构](../data/portal.schema.mysql.sql)、[彩种、站点与权限初始化](../data/portal.data.mysql.sql)、[导入顺序和迁移衔接说明](../data/portal.README.md)。新环境可选择 SQL 导入或 Yii 迁移安装；现有已迁移的数据库无需再次导入。
+
 - `portal_game`：代码、名称、号码数量/范围、排序、发布状态、乐观锁版本。
 - `portal_draw`：彩种外键、唯一期号、时间、号码、来源；无修改或删除历史结果的 HTTP 入口。
 - `portal_notice`：标题、纯文本正文、发布状态、版本。
@@ -99,7 +101,7 @@ php -d opcache.enable=0 -d opcache.enable_cli=0 -S 127.0.0.1:8099 -t admin/web
 - `portal_settings`：网站公开配置和按序排列的广告 JSON，带乐观锁版本和修改时间。
 - `portal_collection_state`：每彩种一行采集状态，失败保留上一次成功时间。
 
-当前数据库原有 `lottery_*` 表属于其他模块，因此本功能采用独立 `portal_*` 表与 `portal/*` 路由，未改写原有开奖记录或权限。五条迁移已在本地实例执行；迁移不支持自动回滚，防止误删开奖历史及角色权限关联。普通后台角色需授予 `portal/settings/index`、`check`、`upload`、`image` 四项权限后使用配置及上传功能。
+当前数据库原有 `lottery_*` 表属于其他模块，因此本功能采用独立 `portal_*` 表与 `portal/*` 路由，未改写原有开奖记录或权限。六条迁移已在本地实例执行，其中最后一条补全7张表及66个字段的中文注释；迁移不支持自动回滚，防止误删开奖历史、权限关联及维护说明。普通后台角色需授予 `portal/settings/index`、`check`、`upload`、`image` 四项权限后使用配置及上传功能。
 
 已有开奖记录的彩种不得修改代码或号码规则；名称、说明、排序、发布状态仍可修改。新增与修改表单分开，写请求继承原后台认证、路由授权、CSRF、Method限制与访问日志。
 
@@ -107,7 +109,7 @@ php -d opcache.enable=0 -d opcache.enable_cli=0 -S 127.0.0.1:8099 -t admin/web
 
 将前台域名 Web 根目录指向 `frontend/web`，后台域名沿用 `admin/web`。运行账号需能写入两个应用各自的 `runtime`、`web/assets` 和共享图片目录 `common/runtime/portal-images`；前台进程需可读取共享图片。PHP 需启用 PDO MySQL、cURL、mbstring、intl、fileinfo、GD。
 
-生产配置稳定、随机的环境变量 `LOTTERY_COOKIE_KEY`；未配置时只读前台使用每请求随机签名密钥，不承诺跨请求 Cookie 持久性。配置生产数据库与 `YII_ENV=prod`，并保持 PHP-FPM 缓存配置与当前发布目录一致。
+生产配置稳定、随机的环境变量 `LOTTERY_COOKIE_KEY`；未配置时只读前台使用每请求随机签名密钥，不承诺跨请求 Cookie 持久性。配置生产数据库，前台设置 `YII_ENV=prod`，控制台按上面的环境选择方式核对配置，并保持 PHP-FPM 缓存配置与当前发布目录一致。
 
 尚未修改操作系统计划任务。本地预览已启动持续采集进程。生产可用进程管理器托管 `php /绝对项目路径/console/index.php portal/collect/watch 5`，或在现有调度平台每分钟执行一次单次采集命令，保留退出码和日志。前台每5秒轮询的是站内数据库，不能替代上游采集进程。后台按彩种分别点击“立即采集”，执行同一入库用例。
 
