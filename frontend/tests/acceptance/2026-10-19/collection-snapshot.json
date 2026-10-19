@@ -1,0 +1,157 @@
+[
+  {
+    "Code": "jnd28",
+    "Name": "加拿大28",
+    "Count": 100,
+    "Latest": {
+      "issue": "3495827",
+      "time": "2026-10-19 09:26:00",
+      "balls": [
+        5,
+        1,
+        0
+      ],
+      "sum": 6,
+      "size": "小",
+      "parity": "双"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:15",
+      "success_time": "2026-10-19 09:28:15",
+      "unavailable": false
+    }
+  },
+  {
+    "Code": "az51",
+    "Name": "澳洲幸运5",
+    "Count": 0,
+    "Latest": null,
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:15",
+      "success_time": null,
+      "unavailable": true
+    }
+  },
+  {
+    "Code": "xyft_168",
+    "Name": "幸运飞艇",
+    "Count": 10,
+    "Latest": {
+      "issue": "20261018180",
+      "time": "2026-10-19 04:04:00",
+      "balls": [
+        2,
+        10,
+        6,
+        7,
+        8,
+        1,
+        5,
+        3,
+        9,
+        4
+      ],
+      "sum": 12,
+      "size": "大",
+      "parity": "双"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:16",
+      "success_time": "2026-10-19 09:28:16",
+      "unavailable": false
+    }
+  },
+  {
+    "Code": "jspk10",
+    "Name": "急速赛车",
+    "Count": 29,
+    "Latest": {
+      "issue": "34194199",
+      "time": "2026-10-19 09:28:03",
+      "balls": [
+        4,
+        8,
+        1,
+        5,
+        7,
+        2,
+        10,
+        3,
+        6,
+        9
+      ],
+      "sum": 12,
+      "size": "大",
+      "parity": "双"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:16",
+      "success_time": "2026-10-19 09:28:16",
+      "unavailable": false
+    }
+  },
+  {
+    "Code": "jsssc",
+    "Name": "急速时时彩",
+    "Count": 19,
+    "Latest": {
+      "issue": "14163463",
+      "time": "2026-10-19 09:28:00",
+      "balls": [
+        1,
+        0,
+        7,
+        0,
+        7
+      ],
+      "sum": 15,
+      "size": "小",
+      "parity": "单"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:16",
+      "success_time": "2026-10-19 09:28:16",
+      "unavailable": false
+    }
+  },
+  {
+    "Code": "jsft_168",
+    "Name": "急速飞艇",
+    "Count": 18,
+    "Latest": {
+      "issue": "54833522",
+      "time": "2026-10-19 09:27:15",
+      "balls": [
+        5,
+        9,
+        8,
+        3,
+        4,
+        7,
+        2,
+        1,
+        6,
+        10
+      ],
+      "sum": 14,
+      "size": "大",
+      "parity": "双"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:17",
+      "success_time": "2026-10-19 09:28:17",
+      "unavailable": false
+    }
+  },
+  {
+    "Code": "az10",
+    "Name": "澳洲幸运10",
+    "Count": 0,
+    "Latest": null,
+    "Collection": {
+      "attempt_time": "2026-10-19 09:28:17",
+      "success_time": null,
+      "unavailable": true
+    }
+  }
+]

@@ -14,6 +14,7 @@ $this->registerJs('window.portalGameData = ' . Json::htmlEncode($data) . '; wind
     </div>
     <div class="portal-entry"><a href="<?= Html::encode($appearance['landing']) ?>" target="_blank" rel="noopener noreferrer">登录或注册！</a><button type="button" data-action="ads" aria-expanded="true">收起广告</button></div>
     <div data-region="ads"><?php foreach ($appearance['ad'] as $ad): ?><a class="portal-ad" href="<?= Html::encode($ad['link']) ?>" target="_blank" rel="noopener noreferrer"><img src="<?= Html::encode($ad['cover']) ?>" alt="广告"></a><?php endforeach; ?></div>
+    <nav class="portal-game-nav" aria-label="彩种切换"><?= $this->render('_game_links') ?></nav>
     <?php if ($appearance['notice_scroll']): ?><p class="portal-notice"><?= Html::encode($appearance['notice_scroll']) ?></p><?php endif; ?>
     <section class="portal-current" aria-label="最新开奖">
         <div class="portal-current-heading"><h1><?= Html::encode($data['game']['name']) ?></h1><button type="button" data-action="refresh">刷新</button></div>

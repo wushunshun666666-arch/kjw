@@ -7,8 +7,6 @@ use common\models\Error;
 /** 多彩种采集适配器，固定来源并限制响应体与连接时间。 */
 class FeedGateway
 {
-    public const URL = 'http://125.77.158.146:9501/Api/getGameData.php?gamename=jnd28';
-
     /** 读取上游数据；只读网络失败返回可展示的业务错误。
      * @return array<int, DrawInput>|Error 已按时间升序排列的标准记录
      */
@@ -32,7 +30,7 @@ class FeedGateway
         return $this->decode($body, $gameId, $code);
     }
 
-    /** 将上游 draw/results/open_time 映射为统一入库字段。
+    /** 按来源映射 draw/results/open_time 或 expect/opencode/opentime。
      * @return array<int, DrawInput>|Error 标准记录或协议错误
      */
     public function decode(string $body, int $gameId, string $code = 'jnd28'): array|Error

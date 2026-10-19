@@ -1,4 +1,4 @@
-.portal-game-nav{width:91%;margin:0 auto;padding:12px 0;display:flex;gap:8px;flex-wrap:wrap;font:14px Arial,"Microsoft YaHei",sans-serif}
+.portal-game-nav{width:100%;margin:0 auto;padding:12px 0;display:flex;gap:8px;flex-wrap:wrap;font:14px Arial,"Microsoft YaHei",sans-serif}
 .portal-game-nav a{padding:9px 16px;border:1px solid #ddd;border-radius:4px;color:#444;background:#f7f7f7;text-decoration:none;white-space:nowrap}
 .portal-game-nav a.selected{background:#e63737;border-color:#e63737;color:white}
 .portal-game-nav a:hover{border-color:#e63737}

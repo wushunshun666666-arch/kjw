@@ -1,0 +1,55 @@
+[
+  {
+    "Code": "az51",
+    "Name": "澳洲幸运5",
+    "Count": 11,
+    "Latest": {
+      "issue": "51360614",
+      "time": "2026-10-19 13:03:40",
+      "balls": [
+        2,
+        6,
+        1,
+        4,
+        0
+      ],
+      "sum": 13,
+      "size": "小",
+      "parity": "单"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 13:06:57",
+      "success_time": "2026-10-19 13:06:57",
+      "unavailable": false
+    }
+  },
+  {
+    "Code": "az10",
+    "Name": "澳洲幸运10",
+    "Count": 10,
+    "Latest": {
+      "issue": "21369514",
+      "time": "2026-10-19 13:03:40",
+      "balls": [
+        1,
+        4,
+        7,
+        2,
+        3,
+        9,
+        8,
+        10,
+        6,
+        5
+      ],
+      "sum": 5,
+      "size": "小",
+      "parity": "单"
+    },
+    "Collection": {
+      "attempt_time": "2026-10-19 13:06:59",
+      "success_time": "2026-10-19 13:06:59",
+      "unavailable": false
+    }
+  }
+]

@@ -12,6 +12,9 @@ foreach (['index/website' => 'website', 'index/website/open' => 'open', 'index/n
     $routes[$source] = Url::to(['reference/' . $action]);
 }
 $this->registerJs('window.appData = {api:"", source:""}; window.portalWebsite = ' . Json::htmlEncode($appearance['website']) . '; window.portalApiRoutes = ' . Json::htmlEncode($routes) . '; window.portalQrcode = ' . Json::htmlEncode(Url::to(['reference/qrcode'])) . ';', \yii\web\View::POS_HEAD);
+if (!($this->params['multiGame'] ?? false)) {
+    $this->registerJs('window.portalGameLinks = ' . Json::htmlEncode($this->render('/site/_game_links')) . ';', \yii\web\View::POS_HEAD);
+}
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html><html lang="zh"><head>
@@ -21,11 +24,4 @@ $this->registerJs('window.appData = {api:"", source:""}; window.portalWebsite = 
 <link rel="icon" href="data:image/gif;base64,R0lGO==" type="image/gif">
 <title><?= Html::encode($this->title ?: '官方授权开奖网') ?></title><?php $this->head() ?>
 </head><body><?php $this->beginBody() ?>
-<?php if (!empty($this->params['portalGames'])): ?>
-<nav class="portal-game-nav" aria-label="彩种切换">
-<?php foreach ($this->params['portalGames'] as $game): ?>
-<?= Html::a(Html::encode($game['name']), ['site/index', 'game' => $game['code'], '#' => '/'], ['class' => ($this->params['portalGame'] ?? 'jnd28') === $game['code'] ? 'selected' : '', 'aria-current' => ($this->params['portalGame'] ?? 'jnd28') === $game['code'] ? 'page' : null]) ?>
-<?php endforeach; ?>
-</nav>
-<?php endif; ?>
 <?= $content ?><?php $this->endBody() ?></body></html><?php $this->endPage() ?>

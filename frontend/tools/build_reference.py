@@ -29,6 +29,10 @@ patch('index-DKj2nBsJ.js',
       'url:window.portalApiRoutes[r.api],method:"GET",params:r.data,headers:r.headers')
 patch('index-5ZnwG-jb.js',
       '`${r(ue).config.apiBaseURL}/index/website/qrcode`', 'window.portalQrcode')
+# Keep the game selector outside the collapsible ads, immediately before results.
+# Links are server-rendered with Html::encode / Url::to and JSON-escaped in the shell.
+patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1}))',
+      'e("nav",{class:"portal-game-nav","aria-label":"彩种切换",innerHTML:window.portalGameLinks||""}),r(c).is_init?(i(),G(Vt,{key:1}))')
 patch('index-5ZnwG-jb.js', 'filter:{type:"result"}',
       'filter:{type:["result","trend","statistics","prediction"].includes(new URLSearchParams(location.hash.split("?")[1]||"").get("tab"))?new URLSearchParams(location.hash.split("?")[1]||"").get("tab"):"result"}')
 # Preserve compiled Vue block structure; only change text bindings and their flags.
