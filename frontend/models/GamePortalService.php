@@ -4,6 +4,7 @@ namespace frontend\models;
 
 use common\models\lottery\CollectionState;
 use common\models\lottery\Draw;
+use common\models\lottery\DrawSchedule;
 use common\models\lottery\FeedCatalog;
 use common\models\lottery\Game;
 use yii\web\NotFoundHttpException;
@@ -44,6 +45,7 @@ final class GamePortalService
                 'rule' => $racing ? '按第1至第10名排列；冠亚和为前两名之和，12–19为大，3–11为小。'
                     : ($definition['count'] === 5 ? '按万、千、百、十、个位排列；总和23–45为大，0–22为小。' : '三位号码之和14–27为大，0–13为小。')],
             'list' => $rows,
+            'period' => DrawSchedule::estimate(array_column($rows, 'time')),
             'collection' => ['attempt_time' => $state?->attempt_time, 'success_time' => $state?->success_time,
                 'unavailable' => $state !== null && $state->error !== ''],
         ];

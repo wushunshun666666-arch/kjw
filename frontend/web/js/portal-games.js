@@ -1,3 +1,5 @@
+import {CountdownPanel, ScratchCardPanel} from './portal-draw-interactions.js?v=20261019-2';
+
 /** Build text-only DOM for public draw data; never interpolate upstream HTML. */
 function element(tag, text = '', className = '') {
     const node = document.createElement(tag);
@@ -172,19 +174,27 @@ class GamePortal {
         this.advertisement = new AdvertisementPanel(root);
         this.button = root.querySelector('[data-action="refresh"]');
         this.pending = false;
+        this.destroyed = false;
+        this.listeners = new AbortController();
+        this.scratch = new ScratchCardPanel(root.querySelector('[data-action="scratch"]'), root.querySelector('#portal-scratch-dialog'), ball);
+        this.countdown = new CountdownPanel(root.querySelector('[data-block="countdown"]'),
+            text => this.scratch.setCountdown(text), () => this.refresh());
         this.init();
     }
 
     init() {
         this.latest.render(this.data);
-        this.button.addEventListener('click', () => this.refresh());
+        this.scratch.update(this.data);
+        this.countdown.update(this.data.period);
+        this.button.addEventListener('click', () => this.refresh(), {signal: this.listeners.signal});
         this.timer = setInterval(() => { if (!document.hidden) this.refresh(); }, 5000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refresh(); }, {signal: this.listeners.signal});
         window.addEventListener('pagehide', () => this.destroy(), {once: true});
         window.addEventListener('pageshow', event => { if (event.persisted) window.location.reload(); });
     }
 
     async refresh() {
-        if (this.pending) return;
+        if (this.pending || this.destroyed) return;
         this.pending = true;
         this.button.disabled = true;
         this.button.textContent = '刷新中…';
@@ -194,12 +204,15 @@ class GamePortal {
             const response = await fetch(this.url, {signal: this.request.signal, cache: 'no-store', credentials: 'same-origin'});
             if (!response.ok) throw new Error('Request failed');
             const payload = await response.json();
+            if (this.destroyed) return;
             if (payload.code !== 200 || payload.data.game.code !== this.data.game.code || !Array.isArray(payload.data.list)) throw new Error('Unexpected game data');
             this.data = payload.data;
             this.latest.render(this.data);
             this.history.update(this.data);
+            this.scratch.update(this.data);
+            this.countdown.update(this.data.period);
         } catch {
-            this.latest.render(this.data, true);
+            if (!this.destroyed) this.latest.render(this.data, true);
         } finally {
             clearTimeout(timeout);
             this.pending = false;
@@ -209,8 +222,12 @@ class GamePortal {
     }
 
     destroy() {
+        this.destroyed = true;
         clearInterval(this.timer);
         this.request?.abort();
+        this.listeners.abort();
+        this.countdown.destroy();
+        this.scratch.destroy();
     }
 }
 

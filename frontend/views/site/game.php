@@ -17,9 +17,12 @@ $this->registerJs('window.portalGameData = ' . Json::htmlEncode($data) . '; wind
     <nav class="portal-game-nav" aria-label="彩种切换"><?= $this->render('_game_links') ?></nav>
     <?php if ($appearance['notice_scroll']): ?><p class="portal-notice"><?= Html::encode($appearance['notice_scroll']) ?></p><?php endif; ?>
     <section class="portal-current" aria-label="最新开奖">
-        <div class="portal-current-heading"><h1><?= Html::encode($data['game']['name']) ?></h1><button type="button" data-action="refresh">刷新</button></div>
+        <div class="portal-current-heading"><h1><?= Html::encode($data['game']['name']) ?></h1><div class="portal-current-actions"><button type="button" class="portal-scratch-trigger" data-action="scratch" aria-haspopup="dialog" aria-controls="portal-scratch-dialog" disabled>咪牌</button><button type="button" data-action="refresh">刷新</button></div></div>
         <p data-region="issue">等待采集数据</p><div class="portal-balls" data-region="balls"></div>
         <p class="portal-current-summary" data-region="summary"></p><p class="portal-state" data-region="status" role="status"></p>
+        <div class="portal-countdown" data-block="countdown" role="timer" aria-live="off" title="按本站最近已采集的开奖间隔估算">
+            <span>下一期：</span><span data-region="countdown-digits" hidden><b data-time="minutes">0</b> 分 <b data-time="seconds">00</b> 秒</span><span data-region="countdown-state">等待开奖时间</span>
+        </div>
     </section>
     <nav class="portal-tabs" role="tablist" aria-label="开奖信息">
         <button type="button" role="tab" id="tab-result" aria-selected="true" aria-controls="portal-game-panel" data-tab="result">结果</button>
@@ -33,5 +36,16 @@ $this->registerJs('window.portalGameData = ' . Json::htmlEncode($data) . '; wind
     </div>
     <section id="portal-game-panel" role="tabpanel" aria-labelledby="tab-result" tabindex="0"><div class="portal-table-scroll" data-region="table"></div></section>
     <p class="portal-rules"><?= Html::encode($data['game']['rule']) ?>走势与统计使用本站已采集的实际记录。</p>
+    <dialog id="portal-scratch-dialog" class="portal-scratch-dialog" aria-labelledby="portal-scratch-title">
+        <div class="portal-scratch-card">
+            <header class="portal-scratch-top"><h2 id="portal-scratch-title"><?= Html::encode($data['game']['name']) ?>咪牌</h2><p>第 <strong data-scratch="issue"></strong> 期开奖结果</p></header>
+            <div class="portal-scratch-surface" data-scratch="surface">
+                <div class="portal-scratch-numbers" data-scratch="numbers"></div>
+                <canvas data-scratch="canvas" tabindex="0" role="button" aria-label="刮开开奖号码，或按回车显示全部号码" data-cover-url="<?= Html::encode(Url::to('@web/cover.png')) ?>"></canvas>
+            </div>
+            <footer class="portal-scratch-footer"><span data-scratch="countdown">下一期：等待开奖时间</span><button type="button" data-scratch="reset">刷新</button></footer>
+        </div>
+        <button type="button" class="portal-scratch-close" data-scratch="close" aria-label="关闭咪牌">×</button>
+    </dialog>
     <noscript>请启用 JavaScript 查看开奖结果、走势和统计。</noscript>
 </main>
