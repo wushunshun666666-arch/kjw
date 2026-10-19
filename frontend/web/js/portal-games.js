@@ -61,9 +61,8 @@ class DrawHistoryPanel {
                 this.root.querySelector(`[data-tab="${tabs[next]}"]`).focus();
             });
         });
-        this.root.querySelector('[data-field="analysis"]').addEventListener('change', event => {
-            this.measureKey = event.target.value;
-            this.render();
+        this.root.querySelectorAll('[data-analysis]').forEach(button => {
+            button.addEventListener('click', () => this.selectAnalysis(button.dataset.analysis));
         });
         this.root.querySelector('[data-field="limit"]').addEventListener('change', event => {
             this.limit = Number(event.target.value);
@@ -86,6 +85,14 @@ class DrawHistoryPanel {
 
     update(data) {
         this.data = data;
+        this.render();
+    }
+
+    selectAnalysis(key) {
+        this.measureKey = key;
+        this.root.querySelectorAll('[data-analysis]').forEach(button => {
+            button.setAttribute('aria-pressed', String(button.dataset.analysis === key));
+        });
         this.render();
     }
 

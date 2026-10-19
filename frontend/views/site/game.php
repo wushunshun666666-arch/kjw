@@ -29,8 +29,13 @@ $this->registerJs('window.portalGameData = ' . Json::htmlEncode($data) . '; wind
         <button type="button" role="tab" id="tab-trend" aria-selected="false" aria-controls="portal-game-panel" data-tab="trend">走势</button>
         <button type="button" role="tab" id="tab-statistics" aria-selected="false" aria-controls="portal-game-panel" data-tab="statistics">统计</button>
     </nav>
+    <div class="portal-analysis" data-region="analysis-control" role="group" aria-label="分析项目" hidden>
+        <span class="portal-analysis-label">分析项目</span>
+        <?php foreach ($data['game']['analysis'] as $option): ?>
+            <button type="button" data-analysis="<?= Html::encode($option['key']) ?>" aria-pressed="<?= $option['key'] === 'sum' ? 'true' : 'false' ?>" aria-controls="portal-game-panel"><?= Html::encode($option['label']) ?></button>
+        <?php endforeach; ?>
+    </div>
     <div class="portal-options">
-        <label data-region="analysis-control" hidden>项目 <select data-field="analysis" aria-label="分析项目"><?php foreach ($data['game']['analysis'] as $option): ?><option value="<?= Html::encode($option['key']) ?>"><?= Html::encode($option['label']) ?></option><?php endforeach; ?></select></label>
         <label>显示 <select data-field="limit" aria-label="显示期数"><option value="20">最近20期</option><option value="50">最近50期</option><option value="100" selected>最近100期</option></select></label>
         <span data-region="samples"></span>
     </div>
