@@ -8,9 +8,9 @@ return [
 	'components' => [
 		'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=localhost;dbname=zhonghepan',
-            'username' => 'zhonghepan',
-            'password' => 'RR5fMDmX65jjDTi4',
+		    'dsn' => 'mysql:host=localhost;dbname=xinshengkaijiang',
+		    'username' => 'xinshengkaijiang',
+		    'password' => 'GpKDGDrH4JbeP64w',
             'charset' => 'utf8mb4',
         	//'enableSchemaCache' => true,
 		],
