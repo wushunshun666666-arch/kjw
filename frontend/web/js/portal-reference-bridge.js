@@ -1,6 +1,7 @@
 /** Connect the pinned Vue shell to the local, independently rendered game panels. */
-import {GamePortal} from './portal-games.js?v=20261019-6';
-import {GameNavigation} from './portal-game-navigation.js?v=20261019-6';
+import {GamePortal} from './portal-games.js?v=20261019-7';
+import {GameNavigation} from './portal-game-navigation.js?v=20261019-7';
+import {HistoryPagination} from './portal-history-pagination.js?v=20261019-7';
 
 export function mountPortal(store) {
     const root = document.getElementById('portal-home');
@@ -18,6 +19,20 @@ export function mountPortal(store) {
         status.textContent = message;
         status.hidden = !message;
     }
+    store.history_locked = true;
+    store.history_page = 1;
+    const pagination = new HistoryPagination({
+        root,
+        endpoint: window.portalHistoryEndpoint,
+        onPage(data) {
+            root.classList.toggle('portal-history-past', data.pagination.page > 1);
+            if (data.game.code === 'jnd28') {
+                store.result = data.list;
+                store.history_page = data.pagination.page;
+            } else widget?.updateHistory(data.list);
+        },
+    });
+    store.history_refresh = data => pagination.observeLatest('jnd28', data.list[0]?.period);
     const initialGame = new URL(location.href).searchParams.get('game') || 'jnd28';
     store.selected_game = initialGame;
     navigation = new GameNavigation({
@@ -30,10 +45,18 @@ export function mountPortal(store) {
             const dialog = history.querySelector('#portal-scratch-dialog');
             if (store.selected_game !== code && dialog.open) dialog.close();
             store.selected_game = code;
+            root.classList.remove('portal-history-past');
+            if (code === 'jnd28') {
+                store.result = [];
+                store.history_page = 1;
+            }
+            pagination.selectGame(code);
+            if (code !== 'jnd28') pagination.observeLatest(code, widget?.data.list[0]?.issue);
         },
         render(data) {
             if (widget) widget.update(data);
             else widget = new GamePortal(current, history, data, () => navigation?.refresh());
+            pagination.observeLatest(data.game.code, data.list[0]?.issue);
         },
         setBusy(busy) {
             if (busy) showStatus('正在切换彩种…');
@@ -47,6 +70,9 @@ export function mountPortal(store) {
     return {
         destroy() {
             navigation.destroy();
+            pagination.destroy();
+            store.history_refresh = null;
+            store.history_locked = false;
             widget?.destroy();
             pauseCanada();
         },

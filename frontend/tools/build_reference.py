@@ -33,7 +33,7 @@ patch('index-5ZnwG-jb.js',
 patch('index-5ZnwG-jb.js', 'const s=y(!0),a=D(()=>c.ad.length>0);return A(function(){c.init()})',
       'let portal;const s=y(!0),a=D(()=>c.ad.length>0);ie(()=>portal?.destroy());return A(function(){portal=mountPortal(c)})')
 patch('index-5ZnwG-jb.js', 'var T=',
-      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-6";var T=')
+      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261019-7";var T=')
 patch('index-5ZnwG-jb.js', 'ys={class:"flex flex-col pb-2"}',
       'ys={id:"portal-home",class:"flex flex-col pb-2"}')
 patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1})):w("",!0)',
@@ -43,7 +43,16 @@ patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1})):w("",!0)',
       'r(c).is_init&&r(c).selected_game==="jnd28"?(i(),G(Vt,{key:1})):w("",!0)')
 patch('index-5ZnwG-jb.js', 'S(us)])]),S(_,{to:"/notice"',
       'e("div",{id:"portal-history-host",class:"multi-portal portal-game-embedded",hidden:r(c).selected_game==="jnd28",innerHTML:window.portalGameHistory||""},null,8,["hidden"]),'
-      'r(c).selected_game==="jnd28"?S(us):w("",!0)])]),S(_,{to:"/notice"')
+      'r(c).selected_game==="jnd28"?S(us):w("",!0),'
+      'e("div",{id:"portal-pagination-host",innerHTML:window.portalHistoryPagination||""})])]),S(_,{to:"/notice"')
+# The live header keeps polling; historical pages have an independent data owner.
+patch('website-BTB8_uk9.js', 'o.result=s,o.prediction=',
+      'o.history_locked||(o.result=s),o.history_refresh?.(i),o.prediction=')
+# Do not prepend the next live issue to an older historical page.
+patch('index-5ZnwG-jb.js', 'e("tbody",null,[e("tr",null,[e("td",null,d((k=r(c).prediction_period)',
+      'e("tbody",null,[e("tr",{class:"portal-live-issue"},[e("td",null,d((k=r(c).prediction_period)')
+patch('index-5ZnwG-jb.js', 'e("tbody",null,[e("tr",null,[e("td",null,[e("div",An,d(r(c).prediction_period)',
+      'e("tbody",null,[e("tr",{class:"portal-live-issue"},[e("td",null,[e("div",An,d(r(c).prediction_period)')
 patch('index-5ZnwG-jb.js', 'filter:{type:"result"}',
       'filter:{type:["result","trend","statistics","prediction"].includes(new URLSearchParams(location.hash.split("?")[1]||"").get("tab"))?new URLSearchParams(location.hash.split("?")[1]||"").get("tab"):"result"}')
 # Preserve compiled Vue block structure; only change text bindings and their flags.
@@ -83,7 +92,7 @@ for name in ['cover.png', 'open.png']:
     shutil.copy2(SOURCE / name, ROOT / 'web' / name)
 # Version the entire import graph, including Vite preloads and circular Vue imports.
 # Revalidating only the entry URL can leave stale chunks or mount two Vue runtimes.
-version = '20261019-6'
+version = '20261019-7'
 scripts = list(OUTPUT.glob('*.js'))
 for script in scripts:
     contents = script.read_text('utf-8')

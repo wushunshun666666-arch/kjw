@@ -13,11 +13,11 @@ use yii\helpers\Url;
 
     </div>
     <div class="portal-options">
-        <label>显示 <select data-field="limit" aria-label="显示期数"><option value="20">最近20期</option><option value="50">最近50期</option><option value="100" selected>最近100期</option></select></label>
+        <label>每页 <select data-page-size aria-label="显示期数"><option value="20" selected>20期</option><option value="50">50期</option><option value="100">100期</option></select></label>
         <span data-region="samples"></span>
     </div>
     <section id="portal-game-panel" role="tabpanel" aria-labelledby="tab-result" tabindex="0"><div class="portal-table-scroll" data-region="table"></div></section>
-    <p class="portal-rules">走势与统计使用本站已采集的实际记录。</p>
+    <p class="portal-rules">走势与统计使用当前页的实际开奖记录。</p>
     <dialog id="portal-scratch-dialog" class="portal-scratch-dialog" aria-labelledby="portal-scratch-title">
         <div class="portal-scratch-card">
             <header class="portal-scratch-top"><h2 id="portal-scratch-title">咪牌</h2><p>第 <strong data-scratch="issue"></strong> 期开奖结果</p></header>

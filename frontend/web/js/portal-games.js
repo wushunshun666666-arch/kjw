@@ -59,7 +59,6 @@ class DrawHistoryPanel {
         this.data = data;
         this.tab = 'result';
         this.measureKey = 'sum';
-        this.limit = 100;
         this.listeners = new AbortController();
         this.init();
     }
@@ -81,10 +80,6 @@ class DrawHistoryPanel {
         this.root.querySelector('[data-region="analysis-control"]').addEventListener('click', event => {
             const button = event.target.closest('[data-analysis]');
             if (button) this.selectAnalysis(button.dataset.analysis);
-        }, options);
-        this.root.querySelector('[data-field="limit"]').addEventListener('change', event => {
-            this.limit = Number(event.target.value);
-            this.render();
         }, options);
         this.buildAnalysis();
         this.selectTab('result');
@@ -133,9 +128,9 @@ class DrawHistoryPanel {
     }
 
     render() {
-        const rows = this.data.list.slice(0, this.limit);
+        const rows = this.data.list;
         const target = this.root.querySelector('[data-region="table"]');
-        this.root.querySelector('[data-region="samples"]').textContent = `实际 ${rows.length} 期`;
+        this.root.querySelector('[data-region="samples"]').textContent = `本页实际 ${rows.length} 期`;
         if (!rows.length) {
             target.replaceChildren(element('p', '暂无开奖记录，采集成功后自动展示。', 'portal-empty'));
             return;
@@ -211,7 +206,7 @@ export class GamePortal {
         this.currentRoot = currentRoot;
         this.historyRoot = historyRoot;
         this.latest = new LatestDrawPanel(currentRoot.querySelector('.portal-current'));
-        this.history = new DrawHistoryPanel(historyRoot, data);
+        this.history = new DrawHistoryPanel(historyRoot, {...data, list: []});
         this.scratch = new ScratchCardPanel(currentRoot.querySelector('[data-action="scratch"]'), historyRoot.querySelector('#portal-scratch-dialog'), ball);
         this.countdown = new CountdownPanel(currentRoot.querySelector('[data-block="countdown"]'),
             text => this.scratch.setCountdown(text), onExpire);
@@ -219,13 +214,18 @@ export class GamePortal {
     }
 
     update(data) {
+        if (!this.data || this.data.game.code !== data.game.code) this.history.update({...data, list: []});
         this.data = data;
         this.latest.render(data);
-        this.history.update(data);
         this.historyRoot.querySelector('#portal-scratch-title').textContent = `${data.game.name}咪牌`;
-        this.historyRoot.querySelector('.portal-rules').textContent = `${data.game.rule}走势与统计使用本站已采集的实际记录。`;
+        this.historyRoot.querySelector('.portal-rules').textContent = `${data.game.rule}走势与统计使用当前页的实际开奖记录。`;
         this.scratch.update(data);
         this.countdown.update(data.period);
+    }
+
+    /** Historical page changes never replace the live draw or its countdown. */
+    updateHistory(list) {
+        this.history.update({...this.data, list});
     }
 
     destroy() {

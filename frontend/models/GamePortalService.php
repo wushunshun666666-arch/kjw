@@ -30,14 +30,7 @@ final class GamePortalService
             : ($definition['count'] === 5 ? ['万位', '千位', '百位', '十位', '个位'] : ['第一位', '第二位', '第三位']);
         $draws = Draw::find()->select(['issue', 'numbers', 'draw_time'])->where(['game_id' => $game->id])
             ->orderBy(['draw_time' => SORT_DESC, 'id' => SORT_DESC])->limit(100)->all();
-        $rows = [];
-        foreach ($draws as $draw) {
-            $balls = $draw->getBalls();
-            $sum = $racing ? $balls[0] + $balls[1] : array_sum($balls);
-            $boundary = $racing ? 12 : ($definition['count'] === 5 ? 23 : 14);
-            $rows[] = ['issue' => $draw->issue, 'time' => $draw->draw_time, 'balls' => $balls,
-                'sum' => $sum, 'size' => $sum >= $boundary ? '大' : '小', 'parity' => $sum % 2 === 0 ? '双' : '单'];
-        }
+        $rows = $this->formatDraws($draws, $code);
         $state = CollectionState::findOne((int) $game->id);
         return [
             'game' => ['code' => $code, 'name' => $game->name, 'type' => $definition['type'],
@@ -50,6 +43,29 @@ final class GamePortalService
             'collection' => ['attempt_time' => $state?->attempt_time, 'success_time' => $state?->success_time,
                 'unavailable' => $state !== null && $state->error !== ''],
         ];
+    }
+
+    /**
+     * 最新开奖与历史分页共用号码、总和或冠亚和及大小单双规则。
+     *
+     * @param Draw[] $draws 同一已发布彩种的开奖记录
+     */
+    public function formatDraws(array $draws, string $code): array
+    {
+        $definition = FeedCatalog::get($code);
+        if ($definition === null) {
+            throw new NotFoundHttpException('彩种不存在或尚未发布。');
+        }
+        $racing = $definition['type'] === 'racing';
+        $boundary = $racing ? 12 : ($definition['count'] === 5 ? 23 : 14);
+        $rows = [];
+        foreach ($draws as $draw) {
+            $balls = $draw->getBalls();
+            $sum = $racing ? $balls[0] + $balls[1] : array_sum($balls);
+            $rows[] = ['issue' => $draw->issue, 'time' => $draw->draw_time, 'balls' => $balls,
+                'sum' => $sum, 'size' => $sum >= $boundary ? '大' : '小', 'parity' => $sum % 2 === 0 ? '双' : '单'];
+        }
+        return $rows;
     }
 
     /** 提供走势与统计共用的分析项目，大小单双沿用开奖结果的总和分类。 */

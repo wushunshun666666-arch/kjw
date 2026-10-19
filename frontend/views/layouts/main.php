@@ -14,6 +14,8 @@ $this->registerJs('window.appData = {api:"", source:""}; window.portalWebsite = 
 $this->registerJs('window.portalGameLinks = ' . Json::htmlEncode($this->render('/site/_game_links'))
     . '; window.portalGameCurrent = ' . Json::htmlEncode($this->render('/site/_game_current'))
     . '; window.portalGameHistory = ' . Json::htmlEncode($this->render('/site/_game_history'))
+    . '; window.portalHistoryPagination = ' . Json::htmlEncode($this->render('/site/_history_pagination'))
+    . '; window.portalHistoryEndpoint = ' . Json::htmlEncode(Url::to(['reference/history']))
     . '; window.portalInitialGame = ' . Json::htmlEncode($this->params['portalGame'] ?? 'jnd28')
     . '; window.portalInitialData = ' . Json::htmlEncode($this->params['portalGameData'] ?? null)
     . '; window.portalGameEndpoint = ' . Json::htmlEncode(Url::to(['reference/game']))

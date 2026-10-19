@@ -37,6 +37,18 @@ final class ReferenceController extends \yii\web\Controller
         return $this->asJson($this->success((new \frontend\models\GamePortalService())->open($form->game)));
     }
 
+    /** 在固定数据库快照内翻阅已发布彩种的开奖记录，不触发采集。 */
+    public function actionHistory()
+    {
+        $form = new \frontend\models\DrawHistoryForm();
+        $form->loadGet();
+        if (!$form->validate()) {
+            throw new \yii\web\BadRequestHttpException('历史分页参数格式不正确。');
+        }
+        \Yii::$app->response->headers->set('Cache-Control', 'no-store');
+        return $this->asJson($this->success((new \frontend\models\DrawHistoryService())->search($form)));
+    }
+
     /** 公告目录。 */
     public function actionNotices() { return $this->asJson($this->success((new ReferencePortalService())->notices())); }
 

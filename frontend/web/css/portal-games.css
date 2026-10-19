@@ -41,3 +41,10 @@
 .portal-game-embedded{width:100%;margin:0}.portal-game-embedded[hidden]{display:none}
 #portal-switch-status{margin:0;padding:6px 12px;color:#b21824;font-size:13px}#portal-switch-status[hidden]{display:none}
 .portal-game-nav a[aria-busy=true]{opacity:.65;cursor:progress}
+.portal-pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;padding:18px 8px;font:14px/1.6 Arial,"Microsoft YaHei",sans-serif;color:#555}
+.portal-pagination button,.portal-pagination select{padding:6px 12px;background:#fff;border:1px solid #ddd;border-radius:3px;font:inherit;color:#333;cursor:pointer}
+.portal-pagination button:not(:disabled):hover{border-color:#e63737;color:#e63737}.portal-pagination button:disabled{opacity:.45;cursor:default}
+.portal-pagination button:focus-visible,.portal-pagination select:focus-visible{outline:2px solid #e63737;outline-offset:2px}
+.portal-page-error{width:100%;color:#b21824;text-align:center}.portal-page-error[hidden]{display:none}
+.portal-history-past .portal-live-issue{display:none}
+@media(max-width:600px){.portal-pagination{gap:8px;font-size:12px}.portal-pagination button,.portal-pagination select{padding:6px 9px}}

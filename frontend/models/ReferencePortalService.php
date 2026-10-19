@@ -61,6 +61,39 @@ final class ReferencePortalService
         if ($nextIssue !== '') { $issues[] = $nextIssue; }
         $predictions = $game === null || $issues === [] ? [] : Prediction::find()
             ->where(['game_id' => $game->id, 'issue' => $issues])->indexBy('issue')->all();
+        $list = $this->formatDraws($draws, $predictions);
+        $last = $list[0] ?? null;
+        $now = time();
+        $nextTime = $last === null ? $now : strtotime($last['created'] . ' Asia/Shanghai') + PredictionAlgorithm::INTERVAL_SECONDS;
+        $stored = $predictions[$nextIssue] ?? null;
+        $prediction = $stored !== null && $stored->source_issue === $latestIssue ? $stored->publicValues() : [];
+        return [
+            'list' => $list,
+            'prediction_source' => 'local',
+            'prediction_algorithm' => $stored->algorithm ?? PredictionAlgorithm::VERSION,
+            'prediction' => $prediction ?: ['pdx' => '-', 'pds' => '-', 'pbdx' => '-', 'pbds' => '-', 'pbdxds' => '-'],
+            'prediction_available' => $prediction !== [],
+            'prediction_period' => $nextIssue ?: '-',
+            'period' => ['cperiod' => $last['period'] ?? '-', 'period' => $nextIssue ?: '-',
+                'open_time' => max(0, $nextTime - $now), 'time' => date('Y-m-d H:i:s', $now),
+                'next_time_end' => date('Y-m-d H:i:s', $nextTime)],
+        ];
+    }
+
+    /**
+     * 最新开奖与历史分页共用加拿大28号码及开奖前已保存的预测命中格式。
+     *
+     * @param Draw[] $draws 加拿大28开奖记录
+     * @param Prediction[]|null $predictions 按期号索引的已加载预测；未传入时批量查询
+     */
+    public function formatDraws(array $draws, ?array $predictions = null): array
+    {
+        if ($predictions === null) {
+            $predictions = $draws === [] ? [] : Prediction::find()
+                ->where(['game_id' => $draws[0]->game_id,
+                    'issue' => array_map(static fn (Draw $draw): string => $draw->issue, $draws)])
+                ->indexBy('issue')->all();
+        }
         $list = [];
         foreach ($draws as $draw) {
             $balls = $draw->getBalls();
@@ -77,22 +110,7 @@ final class ReferencePortalService
                 'prds' => isset($prediction['pds']) ? (int) ($prediction['pds'] === $ds) : null,
             ] + ($prediction ?: ['pdx' => '-', 'pds' => '-', 'pbdx' => '-', 'pbds' => '-', 'pbdxds' => '-']);
         }
-        $last = $list[0] ?? null;
-        $now = time();
-        $nextTime = $last === null ? $now : strtotime($last['created'] . ' Asia/Shanghai') + PredictionAlgorithm::INTERVAL_SECONDS;
-        $stored = $predictions[$nextIssue] ?? null;
-        $prediction = $stored !== null && $stored->source_issue === $latestIssue ? $stored->publicValues() : [];
-        return [
-            'list' => $list,
-            'prediction_source' => 'local',
-            'prediction_algorithm' => $stored?->algorithm ?? PredictionAlgorithm::VERSION,
-            'prediction' => $prediction ?: ['pdx' => '-', 'pds' => '-', 'pbdx' => '-', 'pbds' => '-', 'pbdxds' => '-'],
-            'prediction_available' => $prediction !== [],
-            'prediction_period' => $nextIssue ?: '-',
-            'period' => ['cperiod' => $last['period'] ?? '-', 'period' => $nextIssue ?: '-',
-                'open_time' => max(0, $nextTime - $now), 'time' => date('Y-m-d H:i:s', $now),
-                'next_time_end' => date('Y-m-d H:i:s', $nextTime)],
-        ];
+        return $list;
     }
 
     /** 后台发布公告优先；没有站内公告时显示参考站公开公告。 */

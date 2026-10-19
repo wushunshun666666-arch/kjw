@@ -7,6 +7,6 @@ final class PortalAsset extends \yii\web\AssetBundle
 {
     public $basePath = '@webroot';
     public $baseUrl = '@web';
-    public $css = ['assets1/index-DqNYD7AL.css', 'css/portal-games.css?v=20261019-6'];
-    public $js = [['assets1/index-zEjWpYFa.js?v=20261019-6', 'type' => 'module']];
+    public $css = ['assets1/index-DqNYD7AL.css', 'css/portal-games.css?v=20261019-7'];
+    public $js = [['assets1/index-zEjWpYFa.js?v=20261019-7', 'type' => 'module']];
 }
