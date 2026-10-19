@@ -17,12 +17,20 @@ $this->registerJs('window.portalGameData = ' . Json::htmlEncode($data) . '; wind
     <nav class="portal-game-nav" aria-label="彩种切换"><?= $this->render('_game_links') ?></nav>
     <?php if ($appearance['notice_scroll']): ?><p class="portal-notice"><?= Html::encode($appearance['notice_scroll']) ?></p><?php endif; ?>
     <section class="portal-current" aria-label="最新开奖">
-        <div class="portal-current-heading"><h1><?= Html::encode($data['game']['name']) ?></h1><div class="portal-current-actions"><button type="button" class="portal-scratch-trigger" data-action="scratch" aria-haspopup="dialog" aria-controls="portal-scratch-dialog" disabled>咪牌</button><button type="button" data-action="refresh">刷新</button></div></div>
-        <p data-region="issue">等待采集数据</p><div class="portal-balls" data-region="balls"></div>
-        <p class="portal-current-summary" data-region="summary"></p><p class="portal-state" data-region="status" role="status"></p>
-        <div class="portal-countdown" data-block="countdown" role="timer" aria-live="off" title="按本站最近已采集的开奖间隔估算">
-            <span>下一期：</span><span data-region="countdown-digits" hidden><b data-time="minutes">0</b> 分 <b data-time="seconds">00</b> 秒</span><span data-region="countdown-state">等待开奖时间</span>
+        <div class="portal-current-grid">
+            <div class="portal-current-heading">
+                <div class="portal-current-issue">最新:<span data-region="issue">--</span>期数</div>
+                <button type="button" class="portal-scratch-trigger" data-action="scratch" aria-haspopup="dialog" aria-controls="portal-scratch-dialog" disabled>咪牌</button>
+            </div>
+            <div class="portal-current-result">
+                <div class="portal-current-numbers<?= $data['game']['type'] === 'racing' ? ' portal-current-racing' : '' ?>" data-region="balls"></div>
+                <div class="portal-current-summary" data-region="summary"></div>
+            </div>
+            <div class="portal-countdown" data-block="countdown" role="timer" aria-live="off" title="按本站最近已采集的开奖间隔估算">
+                <span>下一期：</span><span data-region="countdown-digits" hidden><b data-time="minutes">0</b><span>分</span><b data-time="seconds">00</b><span>秒</span></span><span data-region="countdown-state">等待开奖时间</span>
+            </div>
         </div>
+        <p class="portal-state" data-region="status" role="status" hidden></p>
     </section>
     <nav class="portal-tabs" role="tablist" aria-label="开奖信息">
         <button type="button" role="tab" id="tab-result" aria-selected="true" aria-controls="portal-game-panel" data-tab="result">结果</button>

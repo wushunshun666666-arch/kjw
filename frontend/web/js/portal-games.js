@@ -23,17 +23,30 @@ class LatestDrawPanel {
 
     render(data, connectionError = false) {
         const latest = data.list[0];
-        this.root.querySelector('[data-region="issue"]').textContent = latest
-            ? `第 ${latest.issue} 期　${latest.time}` : '等待采集数据';
-        this.root.querySelector('[data-region="balls"]').replaceChildren(
-            ...(latest ? latest.balls.map(value => ball(value, data.game.type === 'racing')) : []));
-        this.root.querySelector('[data-region="summary"]').textContent = latest
-            ? `${data.game.sum_label} ${latest.sum}　${latest.size}　${latest.parity}` : '';
+        const racing = data.game.type === 'racing';
+        this.root.querySelector('[data-region="issue"]').textContent = latest ? latest.issue : '--';
+        this.root.title = latest ? `${data.game.name}　开奖时间：${latest.time}　最近采集：${data.collection.success_time || '暂无'}（北京时间）` : data.game.name;
+        const numbers = [];
+        if (latest) latest.balls.forEach((value, index) => {
+            if (!racing && index > 0) numbers.push(element('span', '+', 'portal-current-symbol'));
+            numbers.push(element('span', racing ? String(value).padStart(2, '0') : value, 'portal-current-number'));
+        });
+        this.root.querySelector('[data-region="balls"]').replaceChildren(...numbers);
+        const summary = this.root.querySelector('[data-region="summary"]');
+        summary.setAttribute('aria-label', latest ? `${data.game.sum_label} ${latest.sum} ${latest.size} ${latest.parity}` : data.game.sum_label);
+        summary.replaceChildren(...(latest ? [
+            element('span', racing ? data.game.sum_label : '=', racing ? 'portal-current-sum-label' : 'portal-current-symbol'),
+            element('span', latest.sum, 'portal-current-sum'),
+            element('span', latest.size, 'portal-current-size'),
+            element('span', latest.parity, 'portal-current-parity'),
+        ] : []));
         const status = connectionError ? '页面更新失败，正在重试；下方保留最近读取的数据。'
             : data.collection.unavailable ? '采集源暂未返回有效数据，正在重试。'
             : !latest ? '暂无已入库开奖记录，请等待采集。'
             : `最近采集：${data.collection.success_time || '暂无'}（北京时间）`;
-        this.root.querySelector('[data-region="status"]').textContent = status;
+        const statusNode = this.root.querySelector('[data-region="status"]');
+        statusNode.textContent = status;
+        statusNode.hidden = Boolean(latest) && !connectionError && !data.collection.unavailable;
     }
 }
 
@@ -187,10 +200,9 @@ class GamePortal {
     constructor(root, data, url) {
         this.data = data;
         this.url = url;
-        this.latest = new LatestDrawPanel(root);
+        this.latest = new LatestDrawPanel(root.querySelector('.portal-current'));
         this.history = new DrawHistoryPanel(root, data);
         this.advertisement = new AdvertisementPanel(root);
-        this.button = root.querySelector('[data-action="refresh"]');
         this.pending = false;
         this.destroyed = false;
         this.listeners = new AbortController();
@@ -204,7 +216,6 @@ class GamePortal {
         this.latest.render(this.data);
         this.scratch.update(this.data);
         this.countdown.update(this.data.period);
-        this.button.addEventListener('click', () => this.refresh(), {signal: this.listeners.signal});
         this.timer = setInterval(() => { if (!document.hidden) this.refresh(); }, 5000);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refresh(); }, {signal: this.listeners.signal});
         window.addEventListener('pagehide', () => this.destroy(), {once: true});
@@ -214,8 +225,6 @@ class GamePortal {
     async refresh() {
         if (this.pending || this.destroyed) return;
         this.pending = true;
-        this.button.disabled = true;
-        this.button.textContent = '刷新中…';
         this.request = new AbortController();
         const timeout = setTimeout(() => this.request.abort(), 12000);
         try {
@@ -234,8 +243,6 @@ class GamePortal {
         } finally {
             clearTimeout(timeout);
             this.pending = false;
-            this.button.disabled = false;
-            this.button.textContent = '刷新';
         }
     }
 
