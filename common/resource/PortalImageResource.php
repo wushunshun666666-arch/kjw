@@ -15,20 +15,48 @@ final class PortalImageResource extends Resource
     public function upload(?UploadedFile $file): array|false
     {
         if ($file === null || $file->error !== UPLOAD_ERR_OK || !is_uploaded_file($file->tempName) || (int) self::getUserId() < 1) {
-            return $this->setError('上传失败，请选择图片并检查服务器上传大小限制。');
+            $this->setError('上传失败，请选择图片并检查服务器上传大小限制。');
+            return false;
         }
         $info = $this->inspect($file->tempName, $file->name);
         if ($info === false) { return false; }
         $key = bin2hex(random_bytes(24)) . '.' . $info['extension'];
         $path = $this->path($key);
-        \yii\helpers\FileHelper::createDirectory(dirname($path), 0750, true);
-        if (!$file->saveAs($path, false)) { return $this->setError('图片保存失败。'); }
-        $manifest = ['owner' => (int) self::getUserId(), 'mime' => $info['mime'], 'created' => time()];
-        if (file_put_contents($path . '.json', json_encode($manifest), LOCK_EX) === false) {
-            unlink($path);
-            return $this->setError('图片信息保存失败。');
+        $message = '图片上传目录无法创建，请联系管理员检查目录权限。';
+        try {
+            if (!\yii\helpers\FileHelper::createDirectory(dirname($path), 0750, true)) {
+                return $this->storageError($path, $message);
+            }
+            $message = '图片保存失败，请联系管理员检查存储目录权限和磁盘空间。';
+            if (!$file->saveAs($path, false)) {
+                return $this->storageError($path, $message);
+            }
+            $message = '图片信息保存失败，请联系管理员检查存储目录权限和磁盘空间。';
+            $manifest = json_encode(['owner' => (int) self::getUserId(), 'mime' => $info['mime'], 'created' => time()]);
+            if (file_put_contents($path . '.json', $manifest, LOCK_EX) !== strlen($manifest)) {
+                return $this->storageError($path, $message);
+            }
+        } catch (\yii\base\Exception | \ErrorException $exception) {
+            return $this->storageError($path, $message, $exception);
         }
         return ['reference' => 'upload:' . $key];
+    }
+
+    /** 将预期存储故障转换为业务错误，记录原因并清理本次上传的半成品。 */
+    private function storageError(string $path, string $message, ?\Throwable $exception = null): false
+    {
+        \Yii::error(['message' => $message, 'cause' => $exception?->getMessage()], __METHOD__);
+        foreach ([$path . '.json', $path] as $file) {
+            try {
+                if (is_file($file) && !unlink($file)) {
+                    \Yii::error('门户图片上传失败后的临时文件清理失败。', __METHOD__);
+                }
+            } catch (\ErrorException $cleanupException) {
+                \Yii::error($cleanupException->getMessage(), __METHOD__);
+            }
+        }
+        $this->setError($message);
+        return false;
     }
 
     /** 同时校验扩展名、真实 MIME、图片头、体积和尺寸。 */
@@ -38,13 +66,15 @@ final class PortalImageResource extends Resource
         $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         $mimes = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp'];
         if ($size === false || $size < 1 || $size > self::MAX_SIZE || !isset($mimes[$extension])) {
-            return $this->setError('图片需为 JPG、PNG、GIF 或 WebP，大小不超过 5 MB。');
+            $this->setError('图片需为 JPG、PNG、GIF 或 WebP，大小不超过 5 MB。');
+            return false;
         }
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
         $image = @getimagesize($path);
-        if ($mime !== $mimes[$extension] || $image === false || ($image['mime'] ?? '') !== $mime
+        if ($mime !== $mimes[$extension] || $image === false || $image['mime'] !== $mime
             || $image[0] < 1 || $image[1] < 1 || $image[0] > 10000 || $image[1] > 10000 || $image[0] * $image[1] > 50000000) {
-            return $this->setError('图片内容、扩展名或尺寸不正确。');
+            $this->setError('图片内容、扩展名或尺寸不正确。');
+            return false;
         }
         return ['extension' => $extension === 'jpeg' ? 'jpg' : $extension, 'mime' => $mime];
     }

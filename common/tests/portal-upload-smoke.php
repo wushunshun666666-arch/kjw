@@ -13,7 +13,23 @@ if (PHP_SAPI === 'cli-server') {
     require __DIR__ . '/lottery-bootstrap.php';
     common\models\LogicModel::setIdentity(common\models\system\UserIdentity::findIdentity(common\models\system\User::ADMIN_ID));
     $resource = new common\resource\PortalImageResource();
-    $result = $resource->upload(yii\web\UploadedFile::getInstanceByName('upload'));
+    if (($_GET['storage'] ?? '') === 'blocked-directory') {
+        Yii::setAlias('@common', getenv('PORTAL_UPLOAD_TEST_BLOCKED_COMMON'));
+    }
+    $file = yii\web\UploadedFile::getInstanceByName('upload');
+    if (($_GET['storage'] ?? '') === 'copy-failure' && $file !== null) {
+        Yii::setAlias('@common', getenv('PORTAL_UPLOAD_TEST_COPY_COMMON'));
+        $file = new class (get_object_vars($file)) extends yii\web\UploadedFile {
+            /** 在真实 multipart 上传保存期间模拟磁盘故障，检查半成品清理。 */
+            public function saveAs($file, $deleteTempFile = true)
+            {
+                file_put_contents($file, 'partial-image');
+                file_put_contents($file . '.json', 'partial-manifest');
+                throw new ErrorException('Simulated upload storage failure.');
+            }
+        };
+    }
+    $result = $resource->upload($file);
     header('Content-Type: application/json');
     echo json_encode($result === false ? ['error' => $resource->getError()] : $result);
     exit;
@@ -29,9 +45,18 @@ $token = bin2hex(random_bytes(32));
 $log = tmpfile();
 $root = sys_get_temp_dir() . '/portal-upload-smoke-' . bin2hex(random_bytes(8));
 mkdir($root);
+$blockedCommon = $root . '/blocked-common';
+mkdir($blockedCommon . '/runtime', 0750, true);
+file_put_contents($blockedCommon . '/runtime/portal-images', 'directory-blocker');
+$copyCommon = $root . '/copy-common';
+mkdir($copyCommon . '/runtime/portal-images', 0750, true);
 $process = proc_open([PHP_BINARY, '-d', 'opcache.enable=0', '-d', 'opcache.enable_cli=0', '-d', 'xdebug.mode=off',
-    '-d', 'upload_max_filesize=8M', '-d', 'post_max_size=10M', '-S', $address, '-t', $root, __FILE__],
-    [0 => ['pipe', 'r'], 1 => $log, 2 => $log], $pipes, dirname(__DIR__, 2), array_merge(getenv(), ['PORTAL_UPLOAD_TEST_TOKEN' => $token]));
+    '-d', 'upload_max_filesize=8M', '-d', 'post_max_size=10M', '-d', 'upload_tmp_dir=' . $root,
+    '-S', $address, '-t', $root, __FILE__],
+    [0 => ['pipe', 'r'], 1 => $log, 2 => $log], $pipes, dirname(__DIR__, 2), array_merge(getenv(), [
+        'PORTAL_UPLOAD_TEST_TOKEN' => $token, 'PORTAL_UPLOAD_TEST_BLOCKED_COMMON' => $blockedCommon,
+        'PORTAL_UPLOAD_TEST_COPY_COMMON' => $copyCommon,
+    ]));
 $createdFiles = [];
 $transaction = null;
 $count = 0;
@@ -45,9 +70,9 @@ function portalUploadAssert(bool $condition, string $message): void
 }
 
 /** 通过真实 HTTP 请求触发 PHP multipart 上传处理。 */
-function portalUploadRequest(string $address, string $token, string $file, string $name): array
+function portalUploadRequest(string $address, string $token, string $file, string $name, string $storage = ''): array
 {
-    $handle = curl_init('http://' . $address . '/upload');
+    $handle = curl_init('http://' . $address . '/upload?storage=' . rawurlencode($storage));
     curl_setopt_array($handle, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10,
         CURLOPT_HTTPHEADER => ['X-Portal-Test-Token: ' . $token],
         CURLOPT_POSTFIELDS => ['upload' => new CURLFile($file, 'application/octet-stream', $name)]]);
@@ -64,6 +89,15 @@ try {
         usleep(100000);
     }
     $gif = Yii::getAlias('@frontend/web/assets1/ad.gif');
+    $blocked = portalUploadRequest($address, $token, $gif, 'advertisement.gif', 'blocked-directory');
+    portalUploadAssert(($blocked['error'] ?? '') === '图片上传目录无法创建，请联系管理员检查目录权限。',
+        '目录创建失败必须返回可解析的业务错误，而不是 HTML 或 PHP 警告。');
+    portalUploadAssert(file_get_contents($blockedCommon . '/runtime/portal-images') === 'directory-blocker',
+        '上传失败不能修改已有的目录阻挡文件。');
+    $failedCopy = portalUploadRequest($address, $token, $gif, 'advertisement.gif', 'copy-failure');
+    portalUploadAssert(($failedCopy['error'] ?? '') === '图片保存失败，请联系管理员检查存储目录权限和磁盘空间。',
+        '存储异常必须返回明确的业务错误。');
+    portalUploadAssert(glob($copyCommon . '/runtime/portal-images/*') === [], '存储异常后遗留了图片或归属记录。');
     $response = portalUploadRequest($address, $token, $gif, 'advertisement.gif');
     portalUploadAssert(isset($response['reference']), '真实 GIF 上传失败。');
     $reference = $response['reference'];
@@ -96,12 +130,18 @@ try {
     $attributes['ads_json'] = json_encode([['cover' => $reference, 'link' => 'https://example.com/upload-test', 'enabled' => 0]]);
     portalUploadAssert((new common\models\lottery\SettingsModel())->save($attributes), '隐藏广告失败。');
     portalUploadAssert($service->image($reference) === null, '隐藏的广告仍可公开读取。');
-    echo 'OK (' . $count . ' assertions): multipart GIF upload, validation, save, publish and hide.' . PHP_EOL;
+    echo 'OK (' . $count . ' assertions): multipart storage failure, GIF upload, validation, save, publish and hide.' . PHP_EOL;
 } finally {
     if ($transaction?->isActive) { $transaction->rollBack(); }
     if (is_resource($process)) { proc_terminate($process); proc_close($process); }
     foreach ($pipes as $pipe) { if (is_resource($pipe)) { fclose($pipe); } }
     fclose($log);
     foreach ($createdFiles as $file) { if (is_file($file)) { unlink($file); } }
+    unlink($blockedCommon . '/runtime/portal-images');
+    rmdir($blockedCommon . '/runtime');
+    rmdir($blockedCommon);
+    rmdir($copyCommon . '/runtime/portal-images');
+    rmdir($copyCommon . '/runtime');
+    rmdir($copyCommon);
     rmdir($root);
 }

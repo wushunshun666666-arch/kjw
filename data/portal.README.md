@@ -63,6 +63,20 @@ php console/index.php migrate/up --interactive=0
 
 已有开奖记录和后台广告配置需要单独备份、迁移数据库；上传图片还需迁移 `common/runtime/portal-images`。提交代码和这些安装 SQL 不会同步当前本机的业务数据。
 
+### 图片上传目录权限
+
+每个主站和分站都需要自己的 `common/runtime/portal-images`，该目录位于 Web 根目录之外。上线前先确认本站 PHP-FPM 进程的实际运行用户和组，再预建上传目录；不要依赖由 root 拉取代码后自动创建该目录。
+
+以下 Linux 示例假设 PHP-FPM 使用 `www:www`，请替换实际项目路径、用户和组后执行：
+
+```bash
+install -d -o www -g www -m 0750 '/实际项目目录/common/runtime/portal-images'
+```
+
+各级父目录须允许 PHP-FPM 用户遍历，上传目录须允许该用户创建文件。已有上传目录应保留全部图片和 `.json` 归属记录，只修正实际需要的属主、组和权限；不要删除目录或设置为 `0777`。如果配置了 `open_basedir`，允许范围须包含本站 `common/runtime/portal-images`。Windows 部署则向实际 PHP 服务账号授予该目录的读写和目录遍历权限。
+
+后台允许单张图片最大 5 MB；应同时检查 PHP-FPM 实际使用的 `upload_max_filesize`、`post_max_size` 及 Web 服务器请求体限制，给 multipart 请求保留额外空间。CLI 的 `php.ini` 不一定与 PHP-FPM 相同。部署验收应在后台实际上传、预览并保存一张图片，不能只用 root 的目录可写检查代替。
+
 ## 本次安装验证
 
 2026-10-19 在 MySQL 8.0.29 上使用随机前缀的独立测试表完成真实 SQL 导入，105 项检查通过：结构、索引、外键与迁移后的实际表一致，66 个字段均有中文注释，7 个彩种及23条路由初始化正确，站点默认值和广告JSON有效。重跑初始化保留自定义配置、已有开奖记录及其他迁移记录；重复期号和无效彩种外键被数据库拒绝，Yii 能识别已导入的6条门户迁移。测试表已清理。
