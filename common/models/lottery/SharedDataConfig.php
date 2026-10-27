@@ -60,19 +60,11 @@ final class SharedDataConfig
         $this->values = $values;
     }
 
-    /** 显式实例参数优先，随后读取被 Git 忽略的私有部署文件；缺省保留原单站模式。 */
+    /** 只读取当前应用环境的共享配置；未启用共享时保留单站模式。 */
     public static function current(): self
     {
-        if (\Yii::$app !== null && array_key_exists('lotteryData', \Yii::$app->params)) {
-            $values = \Yii::$app->params['lotteryData'];
-        } else {
-            $file = dirname(__DIR__, 2) . '/config/lottery-data-local.php';
-            try {
-                $values = is_file($file) ? require $file : [];
-            } catch (\Throwable) {
-                throw new InvalidConfigException('共享开奖私有配置无法加载，请检查服务器部署文件。');
-            }
-        }
+        $values = \Yii::$app !== null && array_key_exists('lotteryData', \Yii::$app->params)
+            ? \Yii::$app->params['lotteryData'] : [];
         if (!is_array($values)) {
             throw new InvalidConfigException('共享开奖部署配置必须返回数组。');
         }

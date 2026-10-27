@@ -59,7 +59,7 @@ php console/index.php migrate/up --interactive=0
 
 ## 环境与数据迁移
 
-前台入口读取环境变量 `YII_ENV`，默认 `dev`；当前控制台入口根据 PHP 的 `is_prod_mode` / `is_test_mode` 扩展选择 `prod` / `test`，未加载时使用 `dev`。仅设置环境变量不会切换当前控制台入口。执行迁移或采集前，核对对应 `common/config/main-<环境>.php` 的有效数据库配置，避免操作错误的实例。
+各入口直接 require 对应的 `common/config/main-<环境>.php`，不再叠加 local 配置。前台读取环境变量 `YII_ENV`，默认 `dev`；后台及 `console/index.php` 按 PHP 的 `is_prod_mode` / `is_test_mode` 扩展选择环境，否则为 `dev`；根目录 `yii` 默认 `dev`。各入口支持预先定义 `YII_ENV` 常量。数据库、缓存、中心/分站配置在对应环境文件中维护，部署时核对 Web 与 CLI 的实际环境。新站初始化与旧站升级见 [环境配置说明](environment.README.md)。
 
 已有开奖记录和后台广告配置需要单独备份、迁移数据库；上传图片还需迁移 `common/runtime/portal-images`。提交代码和这些安装 SQL 不会同步当前本机的业务数据。
 

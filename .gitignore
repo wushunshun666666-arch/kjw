@@ -29,6 +29,10 @@ phpunit.phar
 .phpunit.result.cache
 
 # machine-specific development credentials
+/common/config/main-dev.php
+/common/config/main-test.php
+/common/config/main-prod.php
+/common/runtime/config-backup-*/
 /common/config/main-local.php
 /common/config/lottery-data-local.php
 /console/config/main-local.php

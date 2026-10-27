@@ -2594,7 +2594,7 @@ ImportModel 必须：
 - `console/config/bootstrap.php` 只设置 Console 所需 alias/bootstrap，不写业务逻辑。
 - `console/config/main.php` 配置 `id`、`basePath`、`controllerNamespace`、组件和 params。
 - `main-dev.php/main-test.php/main-prod.php` 只放环境差异；Gii 只能在明确的开发/测试环境启用。
-- 私密配置进入忽略的 `main-local.php` 或环境变量，禁止写入 README、Controller、Service 或提交仓库。
+- 本站数据库、缓存及共享开奖凭据统一放入被 Git 忽略的 `common/config/main-dev.php/main-test.php/main-prod.php`，不再叠加 local 配置；无密钥模板放在 `data/environment-templates/`。各入口保留直接 require 配置并使用 ArrayHelper 合并的方式，部署步骤见 `data/environment.README.md`。禁止把真实凭据写入 README、Controller、Service 或提交仓库。
 - Console 身份通过 `app\models\SystemUser`/`SystemUserIdentity` 提供；系统操作人不能由 CLI 参数冒充。
 - 长驻 Worker 每个任务开始前设置身份、结束后重置身份并关闭/重建失效数据库连接。
 - `runtime/` 的 cache/log/mail 内容不提交，只保留 `.gitignore`。

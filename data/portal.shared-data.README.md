@@ -12,7 +12,7 @@
 | `center` | 中心采集后写入中心数据库 | 由中心执行 | 仅允许已授权客户读取 |
 | `client` | 服务端请求中心 API；短时缓存响应 | 拒绝执行 | 不作为共享中心 |
 
-没有私有共享配置时默认 `standalone`，已有单站继续按原方式运行。启用 `client` 后，分站不把中心的开奖记录、采集状态或预测写入本地开奖数据库；本地缓存也不能作为独立采集任务的替代入口。
+环境文件中未启用共享时默认 `standalone`，已有单站继续按原方式运行。启用 `client` 后，分站不把中心的开奖记录、采集状态或预测写入本地开奖数据库；本地缓存也不能作为独立采集任务的替代入口。
 
 可采用两种服务器布局：
 
@@ -27,19 +27,19 @@
 
 共享功能不新增数据库表或字段，不需要为本功能执行新的数据库迁移。`data/portal.schema.mysql.sql` 已包含门户表及字段的中文注释，本功能保持该结构快照不变。分站仍需要本地门户基础表保存站点设置和彩种配置，不能因为不采集就省略基础安装。
 
-检查前台、后台及 CLI 实际读取的环境配置。前台入口使用 `YII_ENV`，当前 CLI 与后台入口的环境选择依据见 [portal.README.md](portal.README.md)；不要假定三个入口总是读取同一份环境文件。数据库密码和共享凭据只保存在服务器私有配置中。
+前台、后台及 CLI 在各自入口直接加载对应环境文件；环境选择保留原有方式，前台读取环境变量，后台及 `console/index.php` 依据 PHP 环境扩展，根目录 `yii` 默认开发环境，也可预先定义 `YII_ENV` 常量。核对生产站点各入口确实选择 `prod`，数据库密码与共享凭据保存在本站的 `common/config/main-prod.php` 中。三个环境的完整说明与旧站升级步骤见 [环境配置说明](environment.README.md)。
 
 ### 同一仓库部署多个站点
 
-每个独立站点使用自己的 Git 工作目录。复制 `common/config/main-local.example.php` 为同目录的 `main-local.php`，填写该站的数据库名、数据库用户和密码；前台、后台和 CLI 的 `dev`、`test`、`prod` 环境均会应用此私有文件。示例使用本站运行目录的 FileCache，避免多个客户共用 Redis 缓存；若自行改用 Redis，必须为各站设置独立命名空间。只需要为整个站点创建一份私有配置，前台和后台不要分别连不同数据库。
+每个独立站点使用自己的 Git 工作目录。执行 `php data/configure-environments.php` 创建三份环境文件，在 `common/config/main-prod.php` 中填写本站数据库和 `params.lotteryData`。前台、后台和 CLI 使用同一份生产配置。模板使用本站 FileCache；若改用 Redis，须为各站设置独立命名空间。
 
-`main-local.php` 和 `lottery-data-local.php` 都已加入 `.gitignore`，模板与业务代码提交 Git，各站的真实配置不提交。更新前先确认私有文件未被 Git 跟踪（`git ls-files common/config/main-local.php common/config/lottery-data-local.php` 应无输出），然后在各站项目目录执行 `git pull --ff-only origin main`。更新业务代码会保留已有私有文件；不要使用 `git clean -fdx`，也不要在更新时重新复制模板覆盖私有配置。若旧项目曾经把真实配置提交 Git，应先迁出跟踪并轮换其中的凭据。
+三份 `common/config/main-dev.php`、`main-test.php`、`main-prod.php` 已加入 `.gitignore`，各站真实配置不提交。旧站首次升级必须先按环境配置说明备份并迁移，后续更新才可直接执行 `git pull --ff-only origin main`。不要使用 `git clean -fdx`，也不要用模板覆盖已有配置。
 
-没有 `main-local.php` 时仍使用原环境默认值，因此新分站必须先完成本站配置后再开放访问。不要直接修改被 Git 管理的 `main-dev.php`、`main-test.php` 或 `main-prod.php` 来填写客户数据库。
+没有所选环境文件时启动会报错，不会连接其他环境的默认库；新分站先完成本站配置再开放访问。
 
 ## 私有共享配置
 
-复制仓库示例 `common/config/lottery-data.example.php` 为同目录的 `lottery-data-local.php`。后者已被 Git 忽略，且位于 Web 根目录之外。限制其读取权限为运行 PHP 的系统用户或专用组，禁止通过备份下载、静态目录映射等方式公开。
+共享配置统一写入对应环境文件的 `params.lotteryData` 数组，不再使用独立的 `lottery-data-local.php`。限制环境文件的读取权限为运行 PHP 的系统用户或专用组，禁止通过备份下载、静态目录映射等方式公开。下文配置示例的数组均是 `params.lotteryData` 的值，不能用它替换整个环境文件。
 
 | 配置项 | 用途 |
 | --- | --- |
@@ -90,7 +90,7 @@ return [
 
 上述摘要占位文字不能直接使用；配置校验会拒绝无效摘要。增加第二个分站时创建新的客户编号和密钥，不复用已有客户的 token。程序不会自动创建共享客户或后台账号；启用中心并不表示分站已经接入。
 
-分站 `lottery-data-local.php` 示例：
+分站 `params.lotteryData` 示例：
 
 ```php
 <?php
@@ -104,7 +104,7 @@ return [
 ];
 ```
 
-中心配置的 `clients` 键必须与分站 `client_id` 完全一致，`token_hash` 必须是分站实际 token 字符串的 SHA-256 摘要。若轮换密钥，生成新 token 并同步替换中心摘要和对应分站的私有文件；不要把明文 token 写入 `frontend/config/portal.php`、数据库广告设置或前端 JavaScript。
+中心配置的 `clients` 键必须与分站 `client_id` 完全一致，`token_hash` 必须是分站实际 token 字符串的 SHA-256 摘要。若轮换密钥，生成新 token 并同步替换中心摘要和对应分站环境文件的值；不要把明文 token 写入 `frontend/config/portal.php`、数据库广告设置或前端 JavaScript。
 
 ## 只在中心运行采集任务
 

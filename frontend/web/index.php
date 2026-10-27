@@ -9,8 +9,12 @@ require dirname(__DIR__, 2) . '/vendor/autoload.php';
 require dirname(__DIR__, 2) . '/vendor/yiisoft/yii2/Yii.php';
 require dirname(__DIR__, 2) . '/common/config/bootstrap.php';
 Yii::setAlias('@frontend', dirname(__DIR__));
-$shared = require dirname(__DIR__, 2) . '/common/config/main-' . YII_ENV . '.php';
-$config = require dirname(__DIR__) . '/config/main.php';
-$config['vendorPath'] = dirname(__DIR__, 2) . '/vendor';
-$config['components']['db'] = $shared['components']['db'];
+$environmentConfig = require dirname(__DIR__, 2) . '/common/config/main-' . YII_ENV . '.php';
+$frontendConfig = $environmentConfig['applications']['frontend'] ?? [];
+unset($environmentConfig['applications']);
+$config = yii\helpers\ArrayHelper::merge(
+    require dirname(__DIR__) . '/config/main.php',
+    $environmentConfig,
+    $frontendConfig
+);
 (new yii\web\Application($config))->run();

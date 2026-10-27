@@ -7,7 +7,7 @@ $root = dirname(__DIR__, 2);
 require $root . '/vendor/autoload.php';
 require $root . '/vendor/yiisoft/yii2/Yii.php';
 require $root . '/common/config/bootstrap.php';
-$config = require $root . '/common/config/main-dev.php';
+$config = require $root . '/common/config/main-test.php';
 $common = require $root . '/common/config/main.php';
 new yii\web\Application([
     'id' => 'portal-admin-tests', 'basePath' => $root . '/admin', 'controllerNamespace' => 'app\controllers',

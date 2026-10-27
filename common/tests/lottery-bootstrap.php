@@ -8,7 +8,7 @@ require $root . '/vendor/autoload.php';
 require $root . '/vendor/yiisoft/yii2/Yii.php';
 require $root . '/common/config/bootstrap.php';
 Yii::setAlias('@frontend', $root . '/frontend');
-$config = require $root . '/common/config/main-dev.php';
+$config = require $root . '/common/config/main-test.php';
 new yii\console\Application([
     'id' => 'portal-tests', 'basePath' => $root . '/console', 'timeZone' => 'Asia/Shanghai',
     'components' => ['db' => $config['components']['db'], 'cache' => ['class' => yii\caching\DummyCache::class]],
