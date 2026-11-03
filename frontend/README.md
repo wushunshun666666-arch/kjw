@@ -132,3 +132,27 @@ php -d opcache.enable=0 -d opcache.enable_cli=0 -d xdebug.mode=off common/tests/
 新增适配测试位于 `common/tests/unit/models/lottery/ReferencePortalTest.php`，覆盖预测期号匹配、预测不能覆盖号码、缺失预测、隐藏彩种，以及公告空列表、发布隔离、纯文本转义和旧参考详情拒绝。`PredictionTest.php` 覆盖算法权重、样本边界、事前生成、过期跳过、不可变记录和幂等性；`PortalQrcodeTest.php` 覆盖短/长登录地址的二维码生成。
 
 `SettingsTest.php` 覆盖数据库配置发布、广告排序/隐藏/移除、并发版本及不安全链接和图片。上传 smoke 测试启动带随机令牌的临时回环 HTTP 服务，验证真实 multipart GIF 上传、类型/体积拒绝、保存后发布与隐藏后不可读，结束时回滚配置并清理测试图片和服务。
+
+### 2026-11-03：香港、新澳门、老澳门六合彩
+
+新增内部代码 `hk6`、`macau_new`、`macau_old`。三者均使用用户指定的固定来源：
+
+- 香港：`http://69.165.75.20:86/lottery/api/history?lotCode=10048`
+- 新澳门：`http://69.165.75.20:86/lottery/api/history?lotCode=macau_new`
+- 老澳门：`http://69.165.75.20:86/lottery/api/history?lotCode=macau_old`
+
+协议要求 `code=1000`、`data.lotCode` 与请求匹配，历史位于 `data.list`；映射 `issue/draw_code/draw_time`，每期必须为7个互不重复的1–49号码。保留来源顺序，前六位正码、第七位特码，展示两位号码。总和统计包含七球，28–174为小、175–322为大。走势可按各位置（含特码）分析；不从历史推算六合彩下期开奖时间，不补造预测或生肖信息。
+
+部署前，在中心及分站各自的数据库运行迁移 `m261103_000001_add_marksix_games`；使用SQL安装的站点可改用 `data/portal.marksix.mysql.sql`，二选一。两者都仅插入缺失彩种，不修改现有配置、角色授权或任何历史开奖记录。分站仍只读中心数据；采集只在中心/单站运行。既有彩种的采集地址不变。
+
+`draw_status` 仍不参与校验。同一期结果或时间冲突保留原记录并记录差异，继续处理其余有效期；新来源不与此前探测的其他第三方来源混用。当前接口只返回有限历史窗口，不代表已补齐全部历史。
+
+本地验收使用 `common/tests/fixtures/marksix/` 的真实响应快照；事务内测试后回滚。实际接口可用性与线上部署状态应另行核验，不能将本地测试通过视作已部署。
+
+#### 多站点手动更新注意事项
+
+本次仅推送仓库，不自动部署任何站点。私有文件 `common/config/main-dev.php`、`main-test.php`、`main-prod.php` 和旧的 `common/config/dev/`、`test/`、`prod/` 目录均被 Git 忽略。旧私有目录此前曾被跟踪，本次移出跟踪；首次拉取前须逐站备份这些文件和目录到 Web 根目录之外，拉取后恢复原站私有文件。不要用其他站点配置替换，也不要用备份覆盖结构配置 `common/config/main.php` 等源码文件。忽略规则不清理过去的提交记录。
+
+每站先备份数据库，再对该站自己的数据库执行 `data/portal.marksix.mysql.sql`，或运行对应 Yii 迁移，二选一。SQL 只插入缺失的三个彩种，不改现有彩种配置、授权和开奖记录。中心站更新后执行采集，分站仅更新展示配置和共享协议，不启动本地采集。中心和分站需一起升级，旧分站的白名单不认识新增彩种。
+
+按原进程管理方式重启该站常驻采集进程，让其加载新代码；Web 存在 OPcache 缓存时按原流程重载。检查三个彩种的最新开奖、正码/特码顺序、历史分页和采集状态；不能为消除冲突而清空或覆盖历史。

@@ -39,3 +39,14 @@ phpunit.phar
 /api/config/main-local.php
 /api/runtime/
 /console/workerman.log
+
+# Private environment integrations and keys; retain files on each server.
+/common/config/dev/
+/common/config/test/
+/common/config/prod/
+/admin/config/main-dev.php
+/admin/config/main-test.php
+/admin/config/main-prod.php
+/console/config/main-dev.php
+/console/config/main-test.php
+/console/config/main-prod.php

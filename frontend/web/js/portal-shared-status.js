@@ -3,8 +3,9 @@ export function updateSharedDataStatus(element, data) {
     if (!element) return;
     const shared = data?.shared_data;
     if (!shared || typeof shared !== 'object' || Array.isArray(shared) || shared.stale !== true) {
-        element.textContent = '';
-        element.hidden = true;
+        const delayed = data?.collection?.delayed === true;
+        element.textContent = delayed ? '开奖数据待更新，可能处于维护时段；当前保留最近开奖记录。' : '';
+        element.hidden = !delayed;
         return;
     }
 

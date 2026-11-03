@@ -16,12 +16,25 @@ use yii\web\NotFoundHttpException;
 /** 历史查询分页、采集并发和公开边界验收，全部测试写入由事务回滚。 */
 final class DrawHistoryTest extends TestCase
 {
+    public function testFutureSnapshotPreservesSharedProtocolAndCountsCurrentRows(): void
+    {
+        $game = Game::findOne(['code' => 'jnd28']);
+        $max = (int) Draw::find()->where(['game_id' => $game->id])->max('id');
+        $form = new DrawHistoryForm(['game' => 'jnd28', 'snapshot' => 9007199254740991]);
+        self::assertTrue($form->validate());
+        $result = (new DrawHistoryService())->search($form);
+        self::assertSame(9007199254740991, $result['pagination']['snapshot']);
+        self::assertSame((int) Draw::find()->where(['game_id' => $game->id])->count(), $result['pagination']['total']);
+    }
+
     private ?\yii\db\Transaction $transaction = null;
 
     /** 隔离测试样本，保留既有真实开奖记录。 */
     protected function setUp(): void
     {
         $this->transaction = Yii::$app->db->beginTransaction();
+        require_once dirname(__DIR__, 3) . '/fixtures/MarksixGames.php';
+        MarksixGames::seed();
     }
 
     /** 测试成功或失败均不遗留开奖、预测和发布配置。 */
@@ -40,7 +53,7 @@ final class DrawHistoryTest extends TestCase
         self::assertTrue($game->isVisible());
         $definition = FeedCatalog::get($code);
         $numbers = $definition['type'] === 'racing' ? '2,4,9,3,7,1,10,5,8,6'
-            : ($definition['count'] === 5 ? '0,8,7,1,2' : '1,2,3');
+            : ($definition['count'] === 7 ? '01,02,03,04,05,06,49' : ($definition['count'] === 5 ? '0,8,7,1,2' : '1,2,3'));
         $draw = DrawModel::receive(new DrawInput([
             'game_id' => $game->id,
             'issue' => $issue,

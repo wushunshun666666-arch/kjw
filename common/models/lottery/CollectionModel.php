@@ -9,20 +9,25 @@ use mylibs\yii\db\Transaction;
 final class CollectionModel extends \common\models\LogicModel
 {
     private FeedGateway $gateway;
+    private array $lastResult = ['received' => 0, 'inserted' => 0];
+
+    /** 即使部分失败，也保留本轮实际接收和新增统计。 */
+    public function getLastResult(): array { return $this->lastResult; }
 
     /** 注入来源适配器，以便验收上游故障和重复采集。 */
     public function __construct(?FeedGateway $gateway = null)
     {
-        $this->gateway = $gateway ?? new FeedGateway();
+        $this->gateway = $gateway ?? new ConcurrentFeedGateway();
         parent::__construct();
     }
 
     /** 返回本轮接收统计；失败保留已成功入库记录，可安全重试。
      * @return array{received: int, inserted: int}|false
      */
-    public function collect(string $code = 'jnd28'): array|false
+    public function collect(string $code = 'jnd28', array|Error|null $prefetched = null): array|false
     {
         $this->clearErrors();
+        $this->lastResult = ['received' => 0, 'inserted' => 0];
         if (SharedDataConfig::current()->isClient()) {
             $this->setError('当前为共享数据分站，采集由中心统一运行。');
             return false;
@@ -35,19 +40,28 @@ final class CollectionModel extends \common\models\LogicModel
             $game = Game::findOne(['code' => $code]);
             if ($game === null) { $this->setError('请先执行彩种数据库迁移。'); return false; }
             if (!FeedCatalog::matches($game)) { return $this->fail($game, '彩种配置与采集源号码规则不一致。'); }
-            $rows = $this->gateway->fetch((int) $game->id, $code);
+            $rows = $prefetched ?? $this->gateway->fetch((int) $game->id, $code);
             if (Error::isError($rows)) { return $this->fail($game, (string) $rows->getError()); }
             $inserted = 0;
+            $conflicts = [];
             foreach ($rows as $row) {
-                $exists = Draw::find()->where(['game_id' => $game->id, 'issue' => $row->issue])->exists();
-                $result = DrawModel::receive($row);
+                $result = DrawModel::receive($row, $wasInserted);
+                if ($result instanceof DrawConflict) {
+                    $conflicts[] = (string) $result->getError();
+                    \Yii::warning((string) $result->getError(), 'portal.collection.conflict');
+                    continue;
+                }
                 if (Error::isError($result)) { return $this->fail($game, (string) $result->getError(), count($rows), $inserted); }
-                $inserted += $exists ? 0 : 1;
+                $inserted += $wasInserted ? 1 : 0;
             }
             $prediction = PredictionModel::generateNext((int) $game->id);
             if (Error::isError($prediction)) { return $this->fail($game, (string) $prediction->getError(), count($rows), $inserted); }
+            if ($conflicts !== []) {
+                return $this->fail($game, '本轮新增 ' . $inserted . ' 期，冲突 ' . count($conflicts) . ' 期；'
+                    . implode('；', $conflicts), count($rows), $inserted);
+            }
             $this->recordState($game, '', count($rows), $inserted);
-            return ['received' => count($rows), 'inserted' => $inserted];
+            return $this->lastResult;
         } finally {
             $mutex->release($lock);
         }
@@ -57,9 +71,17 @@ final class CollectionModel extends \common\models\LogicModel
     public function collectAll(): array
     {
         $summary = ['received' => 0, 'inserted' => 0, 'results' => [], 'errors' => []];
+        $prefetched = [];
+        if (!SharedDataConfig::current()->isClient() && $this->gateway instanceof ConcurrentFeedGateway) {
+            $games = Game::find()->where(['code' => array_keys(FeedCatalog::GAMES)])->indexBy('code')->all();
+            $prefetched = $this->gateway->fetchAll($games);
+        }
         foreach (array_keys(FeedCatalog::GAMES) as $code) {
-            $result = $this->collect($code);
-            if ($result === false) { $summary['errors'][$code] = $this->getError(); continue; }
+            $result = $this->collect($code, $prefetched[$code] ?? null);
+            if ($result === false) {
+                $summary['errors'][$code] = $this->getError();
+                $result = $this->lastResult;
+            }
             $summary['results'][$code] = $result;
             $summary['received'] += $result['received'];
             $summary['inserted'] += $result['inserted'];
@@ -78,6 +100,7 @@ final class CollectionModel extends \common\models\LogicModel
     /** 在独立短事务中保存本彩种状态快照，调用方持有共享采集锁。 */
     private function recordState(Game $game, string $error, int $received, int $inserted): void
     {
+        $this->lastResult = ['received' => $received, 'inserted' => $inserted];
         $transaction = new Transaction();
         $state = CollectionState::findOne((int) $game->id) ?? new CollectionState(['game_id' => $game->id]);
         $state->attempt_time = (new \DateTimeImmutable('now', new \DateTimeZone('Asia/Shanghai')))->format('Y-m-d H:i:s');

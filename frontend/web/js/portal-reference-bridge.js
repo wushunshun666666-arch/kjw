@@ -1,8 +1,8 @@
 /** Connect the pinned Vue shell to the local, independently rendered game panels. */
-import {GamePortal} from './portal-games.js?v=20261019-9';
-import {GameNavigation} from './portal-game-navigation.js?v=20261019-9';
-import {HistoryPagination} from './portal-history-pagination.js?v=20261019-9';
-import {updateSharedDataStatus} from './portal-shared-status.js?v=20261019-9';
+import {GamePortal} from './portal-games.js?v=20261103-2';
+import {GameNavigation} from './portal-game-navigation.js?v=20261103-2';
+import {HistoryPagination} from './portal-history-pagination.js?v=20261103-2';
+import {updateSharedDataStatus} from './portal-shared-status.js?v=20261103-2';
 
 export function mountPortal(store) {
     const root = document.getElementById('portal-home');

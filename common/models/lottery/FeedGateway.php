@@ -39,6 +39,21 @@ class FeedGateway
         if ($definition === null) { return new Error('未配置该彩种的采集地址。'); }
         if (trim($body) === '') { return new Error('采集接口返回空内容，等待上游恢复。'); }
         $payload = json_decode($body, true, 32);
+        if ($definition['type'] === 'marksix') {
+            if (!is_array($payload) || ($payload['code'] ?? null) !== 1000
+                || ($payload['data']['lotCode'] ?? null) !== $definition['query']
+                || !is_array($payload['data']['list'] ?? null) || !array_is_list($payload['data']['list'])
+                || count($payload['data']['list']) > 200) {
+                return new Error('六合彩采集源响应格式或彩种代码不匹配。');
+            }
+            $mapped = [];
+            foreach ($payload['data']['list'] as $row) {
+                if (!is_array($row)) { return new Error('六合彩采集源记录格式无效。'); }
+                $mapped[] = ['expect' => $row['issue'] ?? null, 'opencode' => $row['draw_code'] ?? null,
+                    'opentime' => $row['draw_time'] ?? null];
+            }
+            $payload = ['code' => $code, 'data' => $mapped];
+        }
         if (!is_array($payload) || ($code === 'jnd28' && ($payload['code'] ?? null) !== $code)
             || (isset($payload['code']) && $payload['code'] !== $code)
             || !isset($payload['data']) || !is_array($payload['data']) || !array_is_list($payload['data'])
@@ -56,7 +71,8 @@ class FeedGateway
             }
             $form = new DrawInput([
                 'game_id' => $gameId, 'issue' => $row[$issueField], 'numbers' => $row[$numbersField],
-                'draw_time' => $row[$timeField], 'source' => $definition['name'] . '采集接口',
+                'draw_time' => $row[$timeField], 'source' => $definition['type'] === 'marksix'
+                    ? '69.165.75.20:86/' . $definition['query'] : $definition['name'] . '采集接口',
             ]);
             if (!$form->validate()) { return new Error($form->getErrors()); }
             if (!FeedCatalog::accepts($code, array_map('intval', explode(',', $form->numbers)))) {

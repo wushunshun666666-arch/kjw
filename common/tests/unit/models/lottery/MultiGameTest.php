@@ -19,7 +19,9 @@ final class MultiGameTest extends TestCase
     private ?\yii\db\Transaction $transaction = null;
 
     /** 每例事务隔离真实实例。 */
-    protected function setUp(): void { $this->transaction = Yii::$app->db->beginTransaction(); }
+    protected function setUp(): void { $this->transaction = Yii::$app->db->beginTransaction();
+        require_once dirname(__DIR__, 3) . '/fixtures/MarksixGames.php';
+        MarksixGames::seed(); }
 
     /** 不遗留模拟开奖与采集状态。 */
     protected function tearDown(): void { if ($this->transaction?->isActive) { $this->transaction->rollBack(); } }
@@ -29,9 +31,13 @@ final class MultiGameTest extends TestCase
     {
         $definition = FeedCatalog::get($code);
         $numbers = $definition['type'] === 'racing' ? '02,04,09,03,07,01,10,05,08,06'
-            : ($definition['count'] === 5 ? '0,8,7,1,2' : '2,5,2');
+            : ($definition['count'] === 7 ? '01,02,03,04,05,06,49' : ($definition['count'] === 5 ? '0,8,7,1,2' : '2,5,2'));
         $row = $code === 'jnd28' ? ['draw' => $issue, 'results' => $numbers, 'open_time' => '2026-10-19 09:08:00']
             : ['expect' => $issue, 'opencode' => $numbers, 'opentime' => '2026-10-19 09:08:00'];
+        if ($definition['type'] === 'marksix') {
+            return json_encode(['code' => 1000, 'data' => ['lotCode' => $definition['query'], 'list' => [[
+                'issue' => $issue, 'draw_code' => $numbers, 'draw_time' => '2026-10-19 09:08:00']]]], JSON_THROW_ON_ERROR);
+        }
         return json_encode(['code' => $code, 'data' => [$row]], JSON_THROW_ON_ERROR);
     }
 
@@ -99,7 +105,7 @@ final class MultiGameTest extends TestCase
         };
         $model = new CollectionModel($gateway);
         $first = $model->collectAll();
-        self::assertSame(6, $first['inserted']);
+        self::assertSame(count(FeedCatalog::GAMES) - 1, $first['inserted']);
         self::assertSame(['az51'], array_keys($first['errors']));
         $id = (int) Game::findOne(['code' => 'az51'])->id;
         self::assertNotSame('', CollectionState::findOne($id)->error);

@@ -10,8 +10,9 @@ use mylibs\yii\db\Transaction;
 final class DrawModel extends LogicModel
 {
     /** 接收标准数据；相同记录重试成功，冲突结果返回错误。 */
-    public static function receive(DrawInput $input): Draw|Error
+    public static function receive(DrawInput $input, ?bool &$inserted = null): Draw|Error
     {
+        $inserted = false;
         if (SharedDataConfig::current()->isClient()) {
             return new Error('共享数据分站不能录入开奖，请在采集中心管理开奖记录。');
         }
@@ -38,7 +39,7 @@ final class DrawModel extends LogicModel
         if ($existing !== null) {
             $transaction->rollback();
             return $existing->numbers === $numbers && $existing->draw_time === $input->draw_time
-                ? $existing : new Error('该期已存在不同结果，请核对数据源；系统不会覆盖历史开奖。');
+                ? $existing : new DrawConflict($game, $existing, $input, $numbers);
         }
         $entity = new Draw($input->getSafeAttributes());
         $entity->numbers = $numbers;
@@ -53,6 +54,7 @@ final class DrawModel extends LogicModel
             return new Error($audit->getErrors());
         }
         $transaction->commit();
+        $inserted = true;
         return $entity;
     }
 }

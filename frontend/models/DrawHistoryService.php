@@ -45,11 +45,15 @@ final class DrawHistoryService
 
         $query = Draw::find()->where(['game_id' => $game->id]);
         $snapshot = (int) $form->snapshot;
-        if ($snapshot === 0) {
-            $snapshot = (int) (clone $query)->max('id');
-        }
+        $currentMax = (int) (clone $query)->max('id');
+        $snapshot = $snapshot === 0 ? $currentMax : $snapshot;
         $query->andWhere(['<=', 'id', $snapshot]);
-        $total = (int) (clone $query)->count();
+        // 同一不可变快照跨页复用总数；事务内不缓存，避免回滚数据污染缓存。
+        $count = static fn (): int => (int) (clone $query)->count();
+        // 超前快照的数据集仍可能增长，不缓存；保留共享协议要求的原快照ID。
+        $total = $snapshot > $currentMax || \Yii::$app->db->getTransaction() !== null ? $count()
+            : \Yii::$app->cache->getOrSet(['draw-history-count-v2', hash('sha256', \Yii::$app->db->dsn),
+                (string) $game->id, $snapshot], $count, 300);
         $pageSize = (int) $form->page_size;
         $totalPages = max(1, (int) ceil($total / $pageSize));
         $page = min((int) $form->page, $totalPages);

@@ -112,7 +112,15 @@ export function ScratchCardPanel(trigger, dialog, makeBall) {
     function render() {
         dialog.querySelector('[data-scratch="issue"]').textContent = latest.issue;
         const numbers = dialog.querySelector('[data-scratch="numbers"]');
-        numbers.replaceChildren(...latest.balls.map(value => makeBall(value, game.type === 'racing')));
+        numbers.replaceChildren(...latest.balls.map((value, index) => {
+            const node = makeBall(value, game.type === 'racing', game.type === 'marksix');
+            if (game.type === 'marksix') {
+                node.title = game.positions[index];
+                node.setAttribute('aria-label', `${game.positions[index]} ${String(value).padStart(2, '0')}`);
+                if (index === 6) node.classList.add('portal-special-ball');
+            }
+            return node;
+        }));
         numbers.classList.toggle('portal-scratch-racing', game.type === 'racing');
         reset();
     }

@@ -61,3 +61,12 @@ test('status rendering leaves draw data untouched and tolerates pages without a 
     assert.equal(data.shared_data, shared);
     assert.equal(data.list[0].issue, '123');
 });
+
+test('successful polling of old draw data still displays the delay notice', () => {
+    const element = {textContent: '', hidden: true};
+    updateSharedDataStatus(element, {collection: {delayed: true}, shared_data: {stale: false}});
+    assert.equal(element.hidden, false);
+    assert.match(element.textContent, /待更新/);
+    updateSharedDataStatus(element, {collection: {delayed: false}});
+    assert.equal(element.hidden, true);
+});

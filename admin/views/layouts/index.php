@@ -111,7 +111,7 @@ $kefuUrl	= Url::to(['kefu/kefu/index']);
 										<?= Html::navigate('我的信息', ['site/profile'], ['class'=>'btn btn-light rounded-0']) ?>
 									</div>
 									<div>
-										<a href="<?= $logoutUrl ?>" class="btn btn-light rounded-0">退出</a>
+										<?= Html::beginForm($logoutUrl, 'post') . Html::submitButton('退出', ['class' => 'btn btn-light rounded-0']) . Html::endForm() ?>
 									</div>
 								</li>
 							</ul>

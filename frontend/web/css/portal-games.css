@@ -49,3 +49,7 @@
 .portal-page-error{width:100%;color:#b21824;text-align:center}.portal-page-error[hidden]{display:none}
 .portal-history-past .portal-live-issue{display:none}
 @media(max-width:600px){.portal-pagination{gap:8px;font-size:12px}.portal-pagination button,.portal-pagination select{padding:6px 9px}}
+
+.portal-special-label{font-size:12px;color:#b21824;margin:0 4px}.portal-special-ball{outline:3px solid #b21824}
+.portal-current .portal-current-marksix{flex-wrap:wrap;max-width:100%}.portal-current-special{display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+.portal-scratch-numbers .portal-special-ball{position:relative}.portal-scratch-numbers .portal-special-ball::after{content:'特码';position:absolute;top:100%;left:0;width:100%;font-size:11px;line-height:18px;color:#b21824}

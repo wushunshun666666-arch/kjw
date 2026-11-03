@@ -24,7 +24,7 @@ final class SharedDataGatewayTest extends TestCase
         $definition = FeedCatalog::get($code);
         $canada = $code === 'jnd28';
         $racing = $definition['type'] === 'racing';
-        $balls = $racing ? range(1, 10) : ($canada ? [1, 2, 3] : [1, 2, 3, 4, 5]);
+        $balls = $racing ? range(1, 10) : ($canada ? [1, 2, 3] : ($definition['count'] === 7 ? [1, 2, 3, 4, 5, 6, 49] : [1, 2, 3, 4, 5]));
         $sum = $racing ? 3 : array_sum($balls);
         $prediction = ['pdx' => '大', 'pds' => '单', 'pbdx' => '小', 'pbds' => '双', 'pbdxds' => '小双'];
         $row = [$canada ? 'period' : 'issue' => '123456', $canada ? 'created' : 'time' => '2026-10-19 12:00:00',
@@ -37,11 +37,11 @@ final class SharedDataGatewayTest extends TestCase
                 'prediction_available' => true, 'prediction_period' => '123457', 'period' => ['cperiod' => '123456',
                     'period' => '123457', 'open_time' => 210, 'time' => '2026-10-19 12:00:00', 'next_time_end' => '2026-10-19 12:03:30']];
         } else {
-            $positions = $racing ? array_map(static fn (int $n): string => '第' . $n . '名', range(1, 10))
-                : ['万位', '千位', '百位', '十位', '个位'];
+            $positions = FeedCatalog::positions($code);
+            [$sumMin, $sumMax] = FeedCatalog::sumRange($code);
             $range = range($definition['min'], $definition['max']);
             $analysis = [
-                ['key' => 'sum', 'label' => $racing ? '冠亚和' : '总和', 'field' => 'sum', 'values' => range($racing ? 3 : 0, $racing ? 19 : 45)],
+                ['key' => 'sum', 'label' => $racing ? '冠亚和' : '总和', 'field' => 'sum', 'values' => range($sumMin, $sumMax)],
                 ['key' => 'size', 'label' => '大小', 'field' => 'size', 'values' => ['大', '小']],
                 ['key' => 'parity', 'label' => '单双', 'field' => 'parity', 'values' => ['单', '双']],
             ];

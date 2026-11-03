@@ -71,6 +71,7 @@ final class ReferencePortalService
             $data['period']['open_time'] = max(0, $nextTime - $now);
             $data['period']['time'] = date('Y-m-d H:i:s', $now);
             $data['prediction_source'] = 'shared';
+            $data['collection'] = ($data['collection'] ?? []) + \common\models\lottery\CollectionHealth::describe(array_column($data['list'], 'created'));
             return $data;
         }
         $draws = $game === null ? [] : Draw::find()->where(['game_id' => $game->id])
@@ -89,6 +90,7 @@ final class ReferencePortalService
         $prediction = $stored !== null && $stored->source_issue === $latestIssue ? $stored->publicValues() : [];
         return [
             'list' => $list,
+            'collection' => \common\models\lottery\CollectionHealth::describe(array_column($list, 'created')),
             'prediction_source' => 'local',
             'prediction_algorithm' => $stored->algorithm ?? PredictionAlgorithm::VERSION,
             'prediction' => $prediction ?: ['pdx' => '-', 'pds' => '-', 'pbdx' => '-', 'pbds' => '-', 'pbdxds' => '-'],

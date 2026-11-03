@@ -40,8 +40,8 @@ final class GamePortalService
         if ($game === null || !FeedCatalog::matches($game)) { throw new NotFoundHttpException('彩种不存在或尚未发布。'); }
         $definition = FeedCatalog::get($code);
         $racing = $definition['type'] === 'racing';
-        $positions = $racing ? array_map(static fn (int $rank): string => '第' . $rank . '名', range(1, 10))
-            : ($definition['count'] === 5 ? ['万位', '千位', '百位', '十位', '个位'] : ['第一位', '第二位', '第三位']);
+        $positions = FeedCatalog::positions($code);
+        $marksix = $definition['type'] === 'marksix';
         $shared = !$sharedExport && $this->sharedConfig->isClient();
         if ($shared) {
             $data = ($this->sharedGateway ?? new SharedDataGateway($this->sharedConfig))->fetch('latest', ['game' => $code]);
@@ -59,11 +59,12 @@ final class GamePortalService
             'game' => ['code' => $code, 'name' => $game->name, 'type' => $definition['type'],
                 'positions' => $positions, 'range' => $game->getNumberRange(), 'sum_label' => $racing ? '冠亚和' : '总和',
                 'analysis' => $this->analysisOptions($game, $positions, $racing),
-                'rule' => $racing ? '按第1至第10名排列；冠亚和为前两名之和，12–19为大，3–11为小。'
-                    : ($definition['count'] === 5 ? '按万、千、百、十、个位排列；总和23–45为大，0–22为小。' : '三位号码之和14–27为大，0–13为小。')],
+                'rule' => $marksix ? '前六位为正码，第七位为特码，01–49不重复；总和包含七个号码，175–322为大，28–174为小。开奖时间按采集源记录，不推算下一期开奖。' : ($racing ? '按第1至第10名排列；冠亚和为前两名之和，12–19为大，3–11为小。'
+                    : ($definition['count'] === 5 ? '按万、千、百、十、个位排列；总和23–45为大，0–22为小。' : '三位号码之和14–27为大，0–13为小。'))],
             'list' => $rows,
-            'period' => DrawSchedule::estimate(array_column($rows, 'time')),
-            'collection' => $collection,
+            'period' => $marksix ? ['server_time' => time(), 'next_draw_at' => null, 'interval_seconds' => null]
+                : DrawSchedule::estimate(array_column($rows, 'time')),
+            'collection' => array_merge($collection, \common\models\lottery\CollectionHealth::describe(array_column($rows, 'time'), null, $marksix ? ($code === 'hk6' ? 7 * 86400 : 86400) : null)),
         ];
         if ($shared) { $result['shared_data'] = $data['shared_data']; }
         return $result;
@@ -81,7 +82,7 @@ final class GamePortalService
             throw new NotFoundHttpException('彩种不存在或尚未发布。');
         }
         $racing = $definition['type'] === 'racing';
-        $boundary = $racing ? 12 : ($definition['count'] === 5 ? 23 : 14);
+        $boundary = $racing ? 12 : ($definition['type'] === 'marksix' ? 175 : ($definition['count'] === 5 ? 23 : 14));
         $rows = [];
         foreach ($draws as $draw) {
             $balls = $draw->getBalls();
@@ -95,8 +96,7 @@ final class GamePortalService
     /** 提供走势与统计共用的分析项目，大小单双沿用开奖结果的总和分类。 */
     private function analysisOptions(Game $game, array $positions, bool $racing): array
     {
-        $sumMin = $racing ? 2 * (int) $game->ball_min + 1 : (int) $game->ball_count * (int) $game->ball_min;
-        $sumMax = $racing ? 2 * (int) $game->ball_max - 1 : (int) $game->ball_count * (int) $game->ball_max;
+        [$sumMin, $sumMax] = FeedCatalog::sumRange($game->code);
         $options = [
             ['key' => 'sum', 'label' => $racing ? '冠亚和' : '总和', 'field' => 'sum', 'values' => range($sumMin, $sumMax)],
             ['key' => 'size', 'label' => '大小', 'field' => 'size', 'values' => ['大', '小']],

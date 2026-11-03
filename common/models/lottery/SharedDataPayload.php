@@ -94,7 +94,7 @@ final class SharedDataPayload
         self::check(FeedCatalog::accepts($code, $balls));
         $racing = FeedCatalog::get($code)['type'] === 'racing';
         $sum = $racing ? $balls[0] + $balls[1] : array_sum($balls);
-        $boundary = $racing ? 12 : ($canada ? 14 : 23);
+        $boundary = $racing ? 12 : ($canada ? 14 : (FeedCatalog::get($code)['type'] === 'marksix' ? 175 : 23));
         self::check(($row['sum'] ?? null) === $sum && ($row[$sizeKey] ?? null) === ($sum >= $boundary ? '大' : '小')
             && ($row[$parityKey] ?? null) === ($sum % 2 === 0 ? '双' : '单'));
         $clean = array_intersect_key($row, array_flip([$issueKey, $timeKey, $ballsKey, 'sum', $sizeKey, $parityKey]));
@@ -176,15 +176,15 @@ final class SharedDataPayload
     {
         $definition = FeedCatalog::get($code);
         $racing = $definition['type'] === 'racing';
-        $positions = $racing ? array_map(static fn (int $rank): string => '第' . $rank . '名', range(1, 10))
-            : ['万位', '千位', '百位', '十位', '个位'];
+        $positions = FeedCatalog::positions($code);
+        [$sumMin, $sumMax] = FeedCatalog::sumRange($code);
         $range = range($definition['min'], $definition['max']);
         self::text($game['name'] ?? null, 128);
         self::text($game['rule'] ?? null, 500);
         self::check(($game['type'] ?? null) === $definition['type'] && ($game['positions'] ?? null) === $positions
             && ($game['range'] ?? null) === $range && ($game['sum_label'] ?? null) === ($racing ? '冠亚和' : '总和'));
         $analysis = [
-            ['key' => 'sum', 'label' => $racing ? '冠亚和' : '总和', 'field' => 'sum', 'values' => range($racing ? 3 : 0, $racing ? 19 : 45)],
+            ['key' => 'sum', 'label' => $racing ? '冠亚和' : '总和', 'field' => 'sum', 'values' => range($sumMin, $sumMax)],
             ['key' => 'size', 'label' => '大小', 'field' => 'size', 'values' => ['大', '小']],
             ['key' => 'parity', 'label' => '单双', 'field' => 'parity', 'values' => ['单', '双']],
         ];

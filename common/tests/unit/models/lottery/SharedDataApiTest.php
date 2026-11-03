@@ -30,6 +30,8 @@ final class SharedDataApiTest extends TestCase
         $this->previousApplication = Yii::$app;
         $this->previousMethod = $_SERVER['REQUEST_METHOD'] ?? null;
         $this->transaction = Yii::$app->db->beginTransaction();
+        require_once dirname(__DIR__, 3) . '/fixtures/MarksixGames.php';
+        MarksixGames::seed();
         $this->cache = new ArrayCache();
         $this->mutex = new FileMutex(['mutexPath' => '@frontend/runtime/qa-shared-data-locks']);
         new Application([
@@ -101,7 +103,7 @@ final class SharedDataApiTest extends TestCase
         self::assertNotNull($game);
         $definition = FeedCatalog::get($code);
         $numbers = $definition['type'] === 'racing' ? '2,4,9,3,7,1,10,5,8,6'
-            : ($definition['count'] === 5 ? '0,8,7,1,2' : '1,2,3');
+            : ($definition['count'] === 7 ? '01,02,03,04,05,06,49' : ($definition['count'] === 5 ? '0,8,7,1,2' : '1,2,3'));
         $draw = DrawModel::receive(new DrawInput(['game_id' => $game->id, 'issue' => $issue,
             'draw_time' => $time, 'numbers' => $numbers, 'source' => '事务内共享API测试']));
         self::assertInstanceOf(Draw::class, $draw);

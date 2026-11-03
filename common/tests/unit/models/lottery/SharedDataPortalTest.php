@@ -31,6 +31,8 @@ final class SharedDataPortalTest extends TestCase
         $this->previousParams = Yii::$app->params;
         Yii::$app->params['lotteryData'] = ['mode' => 'standalone'];
         $this->transaction = Yii::$app->db->beginTransaction();
+        require_once dirname(__DIR__, 3) . '/fixtures/MarksixGames.php';
+        MarksixGames::seed();
     }
 
     /** 不遗留测试开奖、客户配置或应用模式。 */
@@ -146,7 +148,7 @@ final class SharedDataPortalTest extends TestCase
         };
         $model = new CollectionModel($gateway);
         self::assertFalse($model->collect('jnd28'));
-        self::assertCount(7, $model->collectAll()['errors']);
+        self::assertCount(count(FeedCatalog::GAMES), $model->collectAll()['errors']);
         self::assertInstanceOf(Error::class, DrawModel::receive(new DrawInput()));
         self::assertInstanceOf(Error::class, PredictionModel::generateNext(1));
         self::assertSame($count, Draw::find()->count());

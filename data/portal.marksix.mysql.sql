@@ -1,0 +1,5 @@
+-- Only insert missing games; never UPDATE/DELETE portal_draw or existing configuration.
+SET @marksix_install_time = NOW();
+INSERT INTO portal_game (code,name,description,ball_count,ball_min,ball_max,sort_order,enabled,version,create_time,update_time) SELECT 'hk6','香港六合彩','6个正码及1个特码；69.165.75.20:86',7,1,49,70,1,0,@marksix_install_time,@marksix_install_time WHERE NOT EXISTS (SELECT 1 FROM portal_game WHERE code='hk6');
+INSERT INTO portal_game (code,name,description,ball_count,ball_min,ball_max,sort_order,enabled,version,create_time,update_time) SELECT 'macau_new','新澳门六合彩','6个正码及1个特码；69.165.75.20:86',7,1,49,80,1,0,@marksix_install_time,@marksix_install_time WHERE NOT EXISTS (SELECT 1 FROM portal_game WHERE code='macau_new');
+INSERT INTO portal_game (code,name,description,ball_count,ball_min,ball_max,sort_order,enabled,version,create_time,update_time) SELECT 'macau_old','老澳门六合彩','6个正码及1个特码；69.165.75.20:86',7,1,49,90,1,0,@marksix_install_time,@marksix_install_time WHERE NOT EXISTS (SELECT 1 FROM portal_game WHERE code='macau_old');

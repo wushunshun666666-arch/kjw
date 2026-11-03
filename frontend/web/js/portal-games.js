@@ -1,5 +1,5 @@
-import {CountdownPanel, ScratchCardPanel} from './portal-draw-interactions.js?v=20261019-3';
-import {analysisValue, analysisCounts} from './portal-game-analysis.js?v=20261019-3';
+import {CountdownPanel, ScratchCardPanel} from './portal-draw-interactions.js?v=20261103-2';
+import {analysisValue, analysisCounts} from './portal-game-analysis.js?v=20261103-2';
 
 /** Build text-only DOM for public draw data; never interpolate upstream HTML. */
 function element(tag, text = '', className = '') {
@@ -10,8 +10,8 @@ function element(tag, text = '', className = '') {
 }
 
 /** Preserve number order and apply racing's two-digit display. */
-function ball(value, racing) {
-    return element('span', racing ? String(value).padStart(2, '0') : String(value),
+function ball(value, racing, marksix = false) {
+    return element('span', racing || marksix ? String(value).padStart(2, '0') : String(value),
         `portal-ball${racing ? ` racing-ball racing-${value}` : ''}`);
 }
 
@@ -24,15 +24,23 @@ class LatestDrawPanel {
     render(data, connectionError = false) {
         const latest = data.list[0];
         const racing = data.game.type === 'racing';
+        const marksix = data.game.type === 'marksix';
         this.root.querySelector('[data-region="issue"]').textContent = latest ? latest.issue : '--';
         this.root.title = latest ? `${data.game.name}　开奖时间：${latest.time}　最近采集：${data.collection.success_time || '暂无'}（北京时间）` : data.game.name;
         const numbers = [];
         if (latest) latest.balls.forEach((value, index) => {
-            if (!racing && index > 0) numbers.push(element('span', '+', 'portal-current-symbol'));
-            numbers.push(element('span', racing ? String(value).padStart(2, '0') : value, 'portal-current-number'));
+            if (!racing && !marksix && index > 0) numbers.push(element('span', '+', 'portal-current-symbol'));
+            const number = element('span', racing || marksix ? String(value).padStart(2, '0') : value, 'portal-current-number');
+            if (marksix) number.setAttribute('aria-label', `${data.game.positions[index]} ${String(value).padStart(2, '0')}`);
+            if (marksix && index === 6) {
+                const special = element('span', '', 'portal-current-special');
+                special.append(element('span', '特码', 'portal-special-label'), number);
+                numbers.push(special);
+            } else numbers.push(number);
         });
         const balls = this.root.querySelector('[data-region="balls"]');
         balls.classList.toggle('portal-current-racing', racing);
+        balls.classList.toggle('portal-current-marksix', marksix);
         balls.replaceChildren(...numbers);
         const summary = this.root.querySelector('[data-region="summary"]');
         summary.setAttribute('aria-label', latest ? `${data.game.sum_label} ${latest.sum} ${latest.size} ${latest.parity}` : data.game.sum_label);
@@ -44,11 +52,12 @@ class LatestDrawPanel {
         ] : []));
         const status = connectionError ? '页面更新失败，正在重试；下方保留最近读取的数据。'
             : data.collection.unavailable ? '采集源暂未返回有效数据，正在重试。'
+            : data.collection.delayed ? '开奖数据待更新，可能处于维护时段；当前保留最近开奖记录。'
             : !latest ? '暂无已入库开奖记录，请等待采集。'
             : `最近采集：${data.collection.success_time || '暂无'}（北京时间）`;
         const statusNode = this.root.querySelector('[data-region="status"]');
         statusNode.textContent = status;
-        statusNode.hidden = Boolean(latest) && !connectionError && !data.collection.unavailable;
+        statusNode.hidden = Boolean(latest) && !connectionError && !data.collection.unavailable && !data.collection.delayed;
     }
 }
 
@@ -157,7 +166,12 @@ class DrawHistoryPanel {
             issue.append(element('small', row.time));
             const numbers = element('td');
             const group = element('div', '', 'portal-balls');
-            group.append(...row.balls.map(value => ball(value, this.data.game.type === 'racing')));
+            row.balls.forEach((value, index) => {
+                if (this.data.game.type === 'marksix' && index === 6) group.append(element('span', '特码', 'portal-special-label'));
+                const number = ball(value, this.data.game.type === 'racing', this.data.game.type === 'marksix');
+                if (this.data.game.type === 'marksix') number.setAttribute('aria-label', `${this.data.game.positions[index]} ${String(value).padStart(2, '0')}`);
+                group.append(number);
+            });
             numbers.append(group);
             tr.append(issue, numbers, element('td', row.sum), element('td', row.size), element('td', row.parity));
         } else {
@@ -196,7 +210,7 @@ class DrawHistoryPanel {
     }
 
     marker(value, measure) {
-        return ball(value, measure.field === 'balls' && this.data.game.type === 'racing');
+        return ball(value, measure.field === 'balls' && this.data.game.type === 'racing', measure.field === 'balls' && this.data.game.type === 'marksix');
     }
 }
 

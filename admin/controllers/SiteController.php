@@ -14,6 +14,8 @@ use app\helpers\Url;
  */
 class SiteController extends Controller
 {
+    protected function verbFilter() { return ['logout' => ['POST']]; }
+
     protected function accessAllow() {
         // 登录页和错误页，无需登录也可以访问
         return ['login', 'captcha', 'error', 'upload-result'];
