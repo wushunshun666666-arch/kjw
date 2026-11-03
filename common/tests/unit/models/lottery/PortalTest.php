@@ -99,7 +99,7 @@ final class PortalTest extends TestCase
         foreach (['invalid', '{"code":"other","data":[]}', '{"code":"jnd28","data":[{}]}'] as $body) {
             self::assertInstanceOf(Error::class, $gateway->decode($body, 1));
         }
-        $rows = $gateway->decode('{"code":"jnd28","data":[{"draw":"12","results":"2,5,2","open_time":"2026-10-18 03:39:30"}]}', 1);
+        $rows = $gateway->decode('{"code":1000,"data":{"lotCode":"jnd28","list":[{"issue":"12","draw_code":"2,5,2","draw_time":"2026-10-18 03:39:30"}]}}', 1);
         self::assertCount(1, $rows);
         self::assertSame('12', $rows[0]->issue);
         self::assertSame('2,5,2', $rows[0]->numbers);

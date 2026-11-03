@@ -30,8 +30,8 @@ class FeedGateway
         return $this->decode($body, $gameId, $code);
     }
 
-    /** 按来源映射 draw/results/open_time 或 expect/opencode/opentime。
-     * @return array<int, DrawInput>|Error 标准记录或协议错误
+    /** 校验统一历史接口；draw_status及其他展示字段不参与入库或冲突判断。
+     * @return array<int, DrawInput>|Error 按时间升序排列的标准记录
      */
     public function decode(string $body, int $gameId, string $code = 'jnd28'): array|Error
     {
@@ -39,40 +39,23 @@ class FeedGateway
         if ($definition === null) { return new Error('未配置该彩种的采集地址。'); }
         if (trim($body) === '') { return new Error('采集接口返回空内容，等待上游恢复。'); }
         $payload = json_decode($body, true, 32);
-        if ($definition['type'] === 'marksix') {
-            if (!is_array($payload) || ($payload['code'] ?? null) !== 1000
-                || ($payload['data']['lotCode'] ?? null) !== $definition['query']
-                || !is_array($payload['data']['list'] ?? null) || !array_is_list($payload['data']['list'])
-                || count($payload['data']['list']) > 200) {
-                return new Error('六合彩采集源响应格式或彩种代码不匹配。');
-            }
-            $mapped = [];
-            foreach ($payload['data']['list'] as $row) {
-                if (!is_array($row)) { return new Error('六合彩采集源记录格式无效。'); }
-                $mapped[] = ['expect' => $row['issue'] ?? null, 'opencode' => $row['draw_code'] ?? null,
-                    'opentime' => $row['draw_time'] ?? null];
-            }
-            $payload = ['code' => $code, 'data' => $mapped];
+        if (!is_array($payload) || ($payload['code'] ?? null) !== 1000
+            || !is_array($payload['data'] ?? null)
+            || ($payload['data']['lotCode'] ?? null) !== $definition['query']
+            || !is_array($payload['data']['list'] ?? null) || !array_is_list($payload['data']['list'])
+            || count($payload['data']['list']) > 200) {
+            return new Error('采集源响应格式或彩种代码不匹配。');
         }
-        if (!is_array($payload) || ($code === 'jnd28' && ($payload['code'] ?? null) !== $code)
-            || (isset($payload['code']) && $payload['code'] !== $code)
-            || !isset($payload['data']) || !is_array($payload['data']) || !array_is_list($payload['data'])
-            || count($payload['data']) > 200) {
-            return new Error('采集源响应格式不符合该彩种协议。');
-        }
-        if ($payload['data'] === []) { return new Error('采集接口暂未返回开奖记录。'); }
-        [$issueField, $numbersField, $timeField] = $code === 'jnd28'
-            ? ['draw', 'results', 'open_time'] : ['expect', 'opencode', 'opentime'];
+        if ($payload['data']['list'] === []) { return new Error('采集接口暂未返回开奖记录。'); }
         $rows = [];
-        foreach ($payload['data'] as $row) {
-            if (!is_array($row) || !is_string($row[$issueField] ?? null)
-                || !is_string($row[$numbersField] ?? null) || !is_string($row[$timeField] ?? null)) {
+        foreach ($payload['data']['list'] as $row) {
+            if (!is_array($row) || !is_string($row['issue'] ?? null)
+                || !is_string($row['draw_code'] ?? null) || !is_string($row['draw_time'] ?? null)) {
                 return new Error('采集源记录字段不完整。');
             }
             $form = new DrawInput([
-                'game_id' => $gameId, 'issue' => $row[$issueField], 'numbers' => $row[$numbersField],
-                'draw_time' => $row[$timeField], 'source' => $definition['type'] === 'marksix'
-                    ? '69.165.75.20:86/' . $definition['query'] : $definition['name'] . '采集接口',
+                'game_id' => $gameId, 'issue' => $row['issue'], 'numbers' => $row['draw_code'],
+                'draw_time' => $row['draw_time'], 'source' => '69.165.75.20:86/' . $definition['query'],
             ]);
             if (!$form->validate()) { return new Error($form->getErrors()); }
             if (!FeedCatalog::accepts($code, array_map('intval', explode(',', $form->numbers)))) {

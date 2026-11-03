@@ -36,11 +36,11 @@ final class CollectionRecoveryTest extends TestCase
             public function __construct(private string $prefix) {}
             public function fetch(int $gameId, string $code = 'jnd28'): array|Error
             {
-                return $this->decode(json_encode(['code' => 'jnd28', 'data' => [
-                    ['draw' => $this->prefix . '_numbers', 'results' => '9,8,7', 'open_time' => '2020-01-01 00:00:00', 'draw_status' => 'estimated'],
-                    ['draw' => $this->prefix . '_time', 'results' => '1,2,3', 'open_time' => '2020-01-01 00:00:01'],
-                    ['draw' => $this->prefix . '_new', 'results' => '4,5,6', 'open_time' => '2020-01-01 00:00:02', 'draw_status' => 'anything'],
-                ]], JSON_THROW_ON_ERROR), $gameId, $code);
+                return $this->decode(json_encode(['code' => 1000, 'data' => ['lotCode' => 'jnd28', 'list' => [
+                    ['issue' => $this->prefix . '_numbers', 'draw_code' => '9,8,7', 'draw_time' => '2020-01-01 00:00:00', 'draw_status' => 'estimated'],
+                    ['issue' => $this->prefix . '_time', 'draw_code' => '1,2,3', 'draw_time' => '2020-01-01 00:00:01'],
+                    ['issue' => $this->prefix . '_new', 'draw_code' => '4,5,6', 'draw_time' => '2020-01-01 00:00:02', 'draw_status' => 'anything'],
+                ]]], JSON_THROW_ON_ERROR), $gameId, $code);
             }
         };
         $model = new CollectionModel($gateway);
@@ -66,10 +66,10 @@ final class CollectionRecoveryTest extends TestCase
         $game = Game::findOne(['code' => 'jnd28']);
         $gateway = new FeedGateway();
         foreach ([null, 'estimated', 'confirmed', '', false, ['unknown' => true]] as $status) {
-            $row = ['draw' => 'status_ignored', 'results' => '1,2,3', 'open_time' => '2020-01-01 00:00:00'];
-            $without = $gateway->decode(json_encode(['code' => 'jnd28', 'data' => [$row]]), (int) $game->id);
+            $row = ['issue' => 'status_ignored', 'draw_code' => '1,2,3', 'draw_time' => '2020-01-01 00:00:00'];
+            $without = $gateway->decode(json_encode(['code' => 1000, 'data' => ['lotCode' => 'jnd28', 'list' => [$row]]]), (int) $game->id);
             $row['draw_status'] = $status;
-            $with = $gateway->decode(json_encode(['code' => 'jnd28', 'data' => [$row]]), (int) $game->id);
+            $with = $gateway->decode(json_encode(['code' => 1000, 'data' => ['lotCode' => 'jnd28', 'list' => [$row]]]), (int) $game->id);
             self::assertIsArray($with);
             self::assertSame($without[0]->getAttributes(), $with[0]->getAttributes());
         }

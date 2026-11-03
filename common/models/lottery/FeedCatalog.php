@@ -7,12 +7,12 @@ final class FeedCatalog
 {
     public const GAMES = [
         'jnd28' => ['name' => '加拿大28', 'type' => '28', 'count' => 3, 'min' => 0, 'max' => 9, 'query' => 'jnd28'],
-        'az51' => ['name' => '澳洲幸运5', 'type' => 'ssc', 'count' => 5, 'min' => 0, 'max' => 9, 'query' => 'az51&nums=1'],
-        'xyft_168' => ['name' => '幸运飞艇', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => 'xyft_168'],
-        'jspk10' => ['name' => '急速赛车', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => 'jspk10'],
-        'jsssc' => ['name' => '急速时时彩', 'type' => 'ssc', 'count' => 5, 'min' => 0, 'max' => 9, 'query' => 'jsssc'],
-        'jsft_168' => ['name' => '急速飞艇', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => 'jsft_168'],
-        'az10' => ['name' => '澳洲幸运10', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => 'az10&nums=1'],
+        'az51' => ['name' => '澳洲幸运5', 'type' => 'ssc', 'count' => 5, 'min' => 0, 'max' => 9, 'query' => '10010'],
+        'xyft_168' => ['name' => '幸运飞艇', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => '10057'],
+        'jspk10' => ['name' => '急速赛车', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => '10037'],
+        'jsssc' => ['name' => '急速时时彩', 'type' => 'ssc', 'count' => 5, 'min' => 0, 'max' => 9, 'query' => '10036'],
+        'jsft_168' => ['name' => '急速飞艇', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => '10035'],
+        'az10' => ['name' => '澳洲幸运10', 'type' => 'racing', 'count' => 10, 'min' => 1, 'max' => 10, 'query' => '10012'],
         'hk6' => ['name' => '香港六合彩', 'type' => 'marksix', 'count' => 7, 'min' => 1, 'max' => 49, 'query' => '10048'],
         'macau_new' => ['name' => '新澳门六合彩', 'type' => 'marksix', 'count' => 7, 'min' => 1, 'max' => 49, 'query' => 'macau_new'],
         'macau_old' => ['name' => '老澳门六合彩', 'type' => 'marksix', 'count' => 7, 'min' => 1, 'max' => 49, 'query' => 'macau_old'],
@@ -26,10 +26,7 @@ final class FeedCatalog
     {
         $definition = self::get($code);
         if ($definition === null) { throw new \InvalidArgumentException('未配置该彩种的采集地址。'); }
-        if ($definition['type'] === 'marksix') {
-            return 'http://69.165.75.20:86/lottery/api/history?lotCode=' . $definition['query'];
-        }
-        return 'http://125.77.158.146:9501/Api/getGameData.php?gamename=' . $definition['query'];
+        return 'http://69.165.75.20:86/lottery/api/history?lotCode=' . $definition['query'];
     }
 
     /** 确保后台规则与固定采集源一致，避免错误配置造成串库。 */

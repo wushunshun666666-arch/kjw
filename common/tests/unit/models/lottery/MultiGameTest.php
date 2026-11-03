@@ -32,13 +32,8 @@ final class MultiGameTest extends TestCase
         $definition = FeedCatalog::get($code);
         $numbers = $definition['type'] === 'racing' ? '02,04,09,03,07,01,10,05,08,06'
             : ($definition['count'] === 7 ? '01,02,03,04,05,06,49' : ($definition['count'] === 5 ? '0,8,7,1,2' : '2,5,2'));
-        $row = $code === 'jnd28' ? ['draw' => $issue, 'results' => $numbers, 'open_time' => '2026-10-19 09:08:00']
-            : ['expect' => $issue, 'opencode' => $numbers, 'opentime' => '2026-10-19 09:08:00'];
-        if ($definition['type'] === 'marksix') {
-            return json_encode(['code' => 1000, 'data' => ['lotCode' => $definition['query'], 'list' => [[
-                'issue' => $issue, 'draw_code' => $numbers, 'draw_time' => '2026-10-19 09:08:00']]]], JSON_THROW_ON_ERROR);
-        }
-        return json_encode(['code' => $code, 'data' => [$row]], JSON_THROW_ON_ERROR);
+        return json_encode(['code' => 1000, 'data' => ['lotCode' => $definition['query'], 'list' => [[
+            'issue' => $issue, 'draw_code' => $numbers, 'draw_time' => '2026-10-19 09:08:00']]]], JSON_THROW_ON_ERROR);
     }
 
     /** 六种来源按白名单选择，保持原号码顺序并拒绝非法协议。 */
@@ -62,8 +57,8 @@ final class MultiGameTest extends TestCase
             $body = str_replace('02,04,09,03,07,01,10,05,08,06', $bad, $this->body('jspk10'));
             self::assertInstanceOf(Error::class, $gateway->decode($body, 1, 'jspk10'));
         }
-        self::assertStringEndsWith('gamename=az51&nums=1', FeedCatalog::url('az51'));
-        self::assertStringEndsWith('gamename=az10&nums=1', FeedCatalog::url('az10'));
+        self::assertSame('http://69.165.75.20:86/lottery/api/history?lotCode=10010', FeedCatalog::url('az51'));
+        self::assertSame('http://69.165.75.20:86/lottery/api/history?lotCode=10012', FeedCatalog::url('az10'));
         self::assertInstanceOf(Error::class, $gateway->decode($this->body('jsssc'), 1, '../config'));
     }
 
