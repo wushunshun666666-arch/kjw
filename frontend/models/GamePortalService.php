@@ -7,6 +7,7 @@ use common\models\lottery\Draw;
 use common\models\lottery\DrawSchedule;
 use common\models\lottery\FeedCatalog;
 use common\models\lottery\Game;
+use common\models\lottery\MarksixAttributes;
 use common\models\lottery\SharedDataConfig;
 use common\models\lottery\SharedDataGateway;
 use yii\web\NotFoundHttpException;
@@ -59,13 +60,15 @@ final class GamePortalService
             'game' => ['code' => $code, 'name' => $game->name, 'type' => $definition['type'],
                 'positions' => $positions, 'range' => $game->getNumberRange(), 'sum_label' => $racing ? '冠亚和' : '总和',
                 'analysis' => $this->analysisOptions($game, $positions, $racing),
-                'rule' => $marksix ? '前六位为正码，第七位为特码，01–49不重复；总和包含七个号码，175–322为大，28–174为小。开奖时间按采集源记录，不推算下一期开奖。' : ($racing ? '按第1至第10名排列；冠亚和为前两名之和，12–19为大，3–11为小。'
+                'rule' => $marksix ? '前六位正码，第七位特码，01–49不重复。生肖按开奖当天北京时间的农历年份计算，正月初一换年；颜色对应固定红蓝绿波表。特码01–24小、25–48大，49的大小/单双/组合均为和；总和包含七球，175–322大、28–174小。仅作分类展示，不含投注结算，不推算下期开奖。' : ($racing ? '按第1至第10名排列；冠亚和为前两名之和，12–19为大，3–11为小。'
                     : ($definition['count'] === 5 ? '按万、千、百、十、个位排列；总和23–45为大，0–22为小。' : '三位号码之和14–27为大，0–13为小。'))],
             'list' => $rows,
             'period' => $marksix ? ['server_time' => time(), 'next_draw_at' => null, 'interval_seconds' => null]
                 : DrawSchedule::estimate(array_column($rows, 'time')),
             'collection' => array_merge($collection, \common\models\lottery\CollectionHealth::describe(array_column($rows, 'time'), null, $marksix ? ($code === 'hk6' ? 7 * 86400 : 86400) : null)),
         ];
+        // 对旧分站保持原有分析元信息长度；新分站在白名单校验后补充本地展示分类。
+        if ($sharedExport && $marksix) { $result['game']['analysis'] = array_slice($result['game']['analysis'], 0, 3 + count($positions)); }
         if ($shared) { $result['shared_data'] = $data['shared_data']; }
         return $result;
     }
@@ -87,8 +90,10 @@ final class GamePortalService
         foreach ($draws as $draw) {
             $balls = $draw->getBalls();
             $sum = $racing ? $balls[0] + $balls[1] : array_sum($balls);
-            $rows[] = ['issue' => $draw->issue, 'time' => $draw->draw_time, 'balls' => $balls,
+            $row = ['issue' => $draw->issue, 'time' => $draw->draw_time, 'balls' => $balls,
                 'sum' => $sum, 'size' => $sum >= $boundary ? '大' : '小', 'parity' => $sum % 2 === 0 ? '双' : '单'];
+            if ($definition['type'] === 'marksix') { $row['marksix'] = MarksixAttributes::calculate($balls, $draw->draw_time); }
+            $rows[] = $row;
         }
         return $rows;
     }
@@ -106,6 +111,7 @@ final class GamePortalService
             $options[] = ['key' => 'position-' . $index, 'label' => $label, 'field' => 'balls',
                 'position' => $index, 'values' => $game->getNumberRange()];
         }
-        return $options;
+        return $game->ball_count == 7 && FeedCatalog::get($game->code)['type'] === 'marksix'
+            ? array_merge($options, MarksixAttributes::analysisOptions()) : $options;
     }
 }

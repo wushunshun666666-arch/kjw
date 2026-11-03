@@ -40,3 +40,16 @@ test('five-number totals include both zero and forty-five, without changing posi
         {value: '大', count: 0, percent: '0.0'}, {value: '小', count: 0, percent: '0.0'},
     ]);
 });
+
+test('marksix special categories keep 49 tie separate from totals and count unknown zodiac', () => {
+    const draws = [
+        {balls:[1,2,3,4,5,6,49], size:'小', parity:'双', marksix:{special:{size:'和',parity:'和',combo:'和',zodiac:'马',wave:'绿波'}}},
+        {balls:[1,2,3,4,5,6,25], size:'小', parity:'双', marksix:{special:{size:'大',parity:'单',combo:'大单',zodiac:'-',wave:'蓝波'}}},
+    ];
+    assert.equal(analysisValue(draws[0], {field:'marksix_special',attribute:'size'}),'和');
+    assert.equal(analysisValue(draws[0], {field:'size'}),'小');
+    assert.deepEqual(analysisCounts(draws,{field:'marksix_special',attribute:'size',values:['大','小','和']}),[
+        {value:'大',count:1,percent:'50.0'},{value:'小',count:0,percent:'0.0'},{value:'和',count:1,percent:'50.0'},
+    ]);
+    assert.equal(analysisCounts(draws,{field:'marksix_special',attribute:'zodiac',values:['马','-']})[1].count,1);
+});

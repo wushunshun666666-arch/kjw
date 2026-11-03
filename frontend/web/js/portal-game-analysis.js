@@ -1,5 +1,6 @@
 /** Read the selected measure from the stored draw without reclassifying game rules. */
 export function analysisValue(row, measure) {
+    if (measure.field === 'marksix_special') return row.marksix?.special?.[measure.attribute] ?? '-';
     return measure.field === 'balls' ? row.balls[measure.position] : row[measure.field];
 }
 

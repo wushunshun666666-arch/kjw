@@ -113,13 +113,17 @@ export function ScratchCardPanel(trigger, dialog, makeBall) {
         dialog.querySelector('[data-scratch="issue"]').textContent = latest.issue;
         const numbers = dialog.querySelector('[data-scratch="numbers"]');
         numbers.replaceChildren(...latest.balls.map((value, index) => {
-            const node = makeBall(value, game.type === 'racing', game.type === 'marksix');
+            const attributes = game.type === 'marksix' && latest.marksix ? {zodiac: latest.marksix.zodiacs[index], wave: latest.marksix.waves[index]} : null;
+            const node = makeBall(value, game.type === 'racing', game.type === 'marksix', attributes);
             if (game.type === 'marksix') {
                 node.title = game.positions[index];
-                node.setAttribute('aria-label', `${game.positions[index]} ${String(value).padStart(2, '0')}`);
+                node.setAttribute('aria-label', `${game.positions[index]} ${String(value).padStart(2, '0')}${attributes ? ' ' + attributes.zodiac + ' ' + attributes.wave : ''}`);
                 if (index === 6) node.classList.add('portal-special-ball');
             }
-            return node;
+            if (!attributes) return node;
+            const stack = document.createElement('span'); stack.className = 'portal-marksix-stack';
+            const zodiac = document.createElement('small'); zodiac.className = 'portal-zodiac'; zodiac.textContent = attributes.zodiac;
+            stack.append(node, zodiac); return stack;
         }));
         numbers.classList.toggle('portal-scratch-racing', game.type === 'racing');
         reset();

@@ -98,6 +98,21 @@ final class SharedDataPayload
         self::check(($row['sum'] ?? null) === $sum && ($row[$sizeKey] ?? null) === ($sum >= $boundary ? '大' : '小')
             && ($row[$parityKey] ?? null) === ($sum % 2 === 0 ? '双' : '单'));
         $clean = array_intersect_key($row, array_flip([$issueKey, $timeKey, $ballsKey, 'sum', $sizeKey, $parityKey]));
+        if (FeedCatalog::get($code)['type'] === 'marksix') {
+            $attributes = MarksixAttributes::calculate($balls, $row[$timeKey]);
+            if (array_key_exists('marksix', $row)) {
+                self::check(is_array($row['marksix']));
+                foreach ($attributes as $key => $expected) {
+                    if ($key === 'special') {
+                        self::check(is_array($row['marksix'][$key] ?? null));
+                        foreach ($expected as $field => $value) { self::check(($row['marksix'][$key][$field] ?? null) === $value); }
+                    } else {
+                        self::check(array_key_exists($key, $row['marksix']) && $row['marksix'][$key] === $expected);
+                    }
+                }
+            }
+            $clean['marksix'] = $attributes;
+        }
         if ($canada) {
             self::check(is_bool($row['prediction_available'] ?? null));
             $clean['prediction_available'] = $row['prediction_available'];
@@ -191,8 +206,11 @@ final class SharedDataPayload
         foreach ($positions as $index => $label) {
             $analysis[] = ['key' => 'position-' . $index, 'label' => $label, 'field' => 'balls', 'position' => $index, 'values' => $range];
         }
-        self::check(is_array($game['analysis'] ?? null) && array_is_list($game['analysis']) && count($game['analysis']) === count($analysis));
-        foreach ($analysis as $index => $expected) {
+        $legacyCount = count($analysis);
+        if ($definition['type'] === 'marksix') { $analysis = array_merge($analysis, MarksixAttributes::analysisOptions()); }
+        self::check(is_array($game['analysis'] ?? null) && array_is_list($game['analysis'])
+            && in_array(count($game['analysis']), [$legacyCount, count($analysis)], true));
+        foreach (array_slice($analysis, 0, count($game['analysis'])) as $index => $expected) {
             self::check(is_array($game['analysis'][$index]));
             foreach ($expected as $key => $value) {
                 self::check(($game['analysis'][$index][$key] ?? null) === $value);

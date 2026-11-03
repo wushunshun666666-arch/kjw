@@ -8,6 +8,42 @@ use PHPUnit\Framework\TestCase;
 /** 使用实际响应样本，在事务内验证三种六合彩完整链路。 */
 final class MarksixTest extends TestCase
 {
+    public function testAttributesAreReadOnlyAndSharedPayloadIsVerified(): void
+    {
+        foreach (['hk6', 'macau_new', 'macau_old'] as $code) {
+            $game = Game::findOne(['code' => $code]);
+            foreach (['2026-02-16 23:59:59', '2026-02-17 00:00:00'] as $index => $date) {
+                $input = new \common\models\lottery\DrawInput(['game_id' => $game->id,
+                    'issue' => 'qa_attributes_' . $index, 'numbers' => '1,2,3,4,5,6,49', 'draw_time' => $date, 'source' => 'test']);
+                self::assertInstanceOf(Draw::class, DrawModel::receive($input));
+            }
+            $before = Draw::find()->where(['game_id' => $game->id])->orderBy('id')->asArray()->all();
+            $latest = (new GamePortalService())->open($code);
+            self::assertSame('马', $latest['list'][0]['marksix']['special']['zodiac']);
+            self::assertSame('和', $latest['list'][0]['marksix']['special']['parity']);
+            self::assertSame('小', $latest['list'][0]['size']); // 总和不受特码49和局影响。
+            $history = (new DrawHistoryService())->search(new DrawHistoryForm(['game' => $code]));
+            self::assertSame('蛇', $history['list'][1]['marksix']['special']['zodiac']);
+            $envelope = ['version' => 1, 'code' => 200, 'data' => $latest];
+            self::assertSame($latest['list'], SharedDataPayload::validate($envelope, 'latest', ['game' => $code])['list']);
+            $bad = $envelope; $bad['data']['list'][0]['marksix']['special']['size'] = '大';
+            try { SharedDataPayload::validate($bad, 'latest', ['game' => $code]); self::fail('Tampered classification accepted'); }
+            catch (\UnexpectedValueException) { self::assertTrue(true); }
+            // 升级中的旧中心不发送属性时，新分站从原始号码和时间派生同样结果。
+            foreach ($envelope['data']['list'] as &$row) { unset($row['marksix']); } unset($row);
+            $envelope['data']['game']['analysis'] = array_slice($latest['game']['analysis'], 0, 10);
+            $legacy = SharedDataPayload::validate($envelope, 'latest', ['game' => $code]);
+            self::assertSame($latest['list'], $legacy['list']);
+            self::assertSame($latest['game']['analysis'], $legacy['game']['analysis']);
+            $export = (new GamePortalService())->open($code, true);
+            self::assertCount(10, $export['game']['analysis']);
+            self::assertCount(15, $latest['game']['analysis']);
+            $exported = SharedDataPayload::validate(['version' => 1, 'code' => 200, 'data' => $export], 'latest', ['game' => $code]);
+            self::assertSame($latest['game']['analysis'], $exported['game']['analysis']);
+            self::assertSame($before, Draw::find()->where(['game_id' => $game->id])->orderBy('id')->asArray()->all());
+        }
+    }
+
     public function testSharedMetadataHelpersDoNotChangeExistingCanadaRules(): void
     {
         $data = (new GamePortalService())->open('jnd28');

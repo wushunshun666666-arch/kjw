@@ -33,7 +33,7 @@ patch('index-5ZnwG-jb.js',
 patch('index-5ZnwG-jb.js', 'const s=y(!0),a=D(()=>c.ad.length>0);return A(function(){c.init()})',
       'let portal;const s=y(!0),a=D(()=>c.ad.length>0);ie(()=>portal?.destroy());return A(function(){portal=mountPortal(c)})')
 patch('index-5ZnwG-jb.js', 'var T=',
-      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261103-2";var T=')
+      'import{mountPortal}from"../js/portal-reference-bridge.js?v=20261103-3";var T=')
 patch('index-5ZnwG-jb.js', 'ys={class:"flex flex-col pb-2"}',
       'ys={id:"portal-home",class:"flex flex-col pb-2"}')
 patch('index-5ZnwG-jb.js', 'r(c).is_init?(i(),G(Vt,{key:1})):w("",!0)',
@@ -97,7 +97,7 @@ patch('website-BTB8_uk9.js',
       'if(e.code===200){const t=e.data;' + website_apply + ',void 0}o.is_init=!0,yield this.cycle(!0)})}',
       'init:function(){o.is_init=!0;return portalConfiguration.load()}')
 patch('website-BTB8_uk9.js', 'var h=',
-      'import{WebsiteConfiguration}from"../js/portal-website-configuration.js?v=20261103-2";var h=')
+      'import{WebsiteConfiguration}from"../js/portal-website-configuration.js?v=20261103-3";var h=')
 patch('website-BTB8_uk9.js', 'export{o as W};',
       'const portalConfiguration=new WebsiteConfiguration({'
       'request:()=>x({api:O.website_index,data:{id:o.lottery_id}}),'
@@ -111,7 +111,7 @@ for name in ['cover.png', 'open.png']:
     shutil.copy2(SOURCE / name, ROOT / 'web' / name)
 # Version the entire import graph, including Vite preloads and circular Vue imports.
 # Revalidating only the entry URL can leave stale chunks or mount two Vue runtimes.
-version = '20261103-2'
+version = '20261103-3'
 scripts = list(OUTPUT.glob('*.js'))
 for script in scripts:
     contents = script.read_text('utf-8')
